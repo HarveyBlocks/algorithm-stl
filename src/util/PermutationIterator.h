@@ -10,6 +10,7 @@
 
 #include "../lang/exception/IllegalStateException.h"
 #include "Arrays.h"
+
 /**
  * 给出全排列的各个情况
  */

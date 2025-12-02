@@ -4,13 +4,12 @@
 #include "../../../lang/exception/IllegalStateException.h"
 
 
-
 template<class T>
 StackLinkedList<T>::StackLinkedList() : head(new StackLinkedNode<T>()), size(0) {}
 
 
 template<class T>
-void StackLinkedList<T>::pushFront(const T &value) const{
+void StackLinkedList<T>::pushFront(const T &value) const {
     StackLinkedNode<T> *node = new StackLinkedNode<T>(value, head->next);
     head->next = node;
     size++;
@@ -84,7 +83,7 @@ StackLinkedList<T>::StackLinkedList(const StackLinkedList &list) :StackLinkedLis
 }
 
 template<class T>
-void StackLinkedList<T>::forEach(const Function<T &, bool>& task) const {
+void StackLinkedList<T>::forEach(const Function<T &, bool> &task) const {
     StackLinkedList<T> temp;
     while (!this->empty()) {
         T top = this->front();

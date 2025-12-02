@@ -63,6 +63,7 @@ public:
             BinaryTreeNode<T> *root,
             const BiFunction<BinaryTreeNode<T> *, int, bool> &task,
             bool withNull);
+
     virtual ~BinaryTree();
 
     friend std::ostream &operator<<(std::ostream &os, const BinaryTree<T> &obj) {

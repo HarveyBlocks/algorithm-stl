@@ -46,6 +46,7 @@ public:
         });
         return find;
     }
+
     V &operator[](const K &key) const override {
         int indexInTable = map2Index((HashCode) key, table->getSize());
         Entry<K, V> *target;
@@ -93,7 +94,7 @@ public:
         });
     }
 
-    void forEach(const Function<Entry<K, V> &, bool>& task) const {
+    void forEach(const Function<Entry<K, V> &, bool> &task) const {
         int tableSize = table->getSize();
         for (int i = 0; i < tableSize; ++i) {
             SingleLinkedList<Entry<K, V>> list = (*table)[i];

@@ -8,6 +8,7 @@ add_executable(algorithm
         src/SortDemo.cpp
         src/TreeDemo.cpp
         src/SelectDemo.cpp
+        src/BTreeTestDemo.cpp
         src/ContainerDemo.cpp
 
         src/lang/Runnable.h
@@ -141,4 +142,10 @@ add_executable(algorithm
         src/lang/UInt128.h
         src/tree/Trie.cpp
         src/tree/Trie.h
+        src/util/type.h
+        src/tree/impl/BTree_impl.h
+        src/util/Objects.cpp
+        src/util/Objects.h
+        src/tree/impl/BTreeNode_impl.h
+        src/tree/BTree.h
 )

@@ -166,7 +166,7 @@ void BinarySearchTree<T>::insert(const T &value) {
 
 
 template<class T>
-BinaryTreeNode<T> * BinarySearchTree<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
+BinaryTreeNode<T> *BinarySearchTree<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
     // 如果没有俩, 说明状态一定错了, pop会抛出异常
     BinaryTreeNode<T> *newNode = trace.pop();
     if (this->root == nullptr && this->size == 0) {

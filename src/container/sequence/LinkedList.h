@@ -25,7 +25,7 @@ public:
     /**
      * @param task 返回false, 就终止遍历
      */
-    virtual void forEach(const Function<T &, bool>& task) const = 0;
+    virtual void forEach(const Function<T &, bool> &task) const = 0;
 
     friend std::ostream &operator<<(std::ostream &os, const LinkedList<T> &obj) {
         obj.forEach([&os](T &value) {

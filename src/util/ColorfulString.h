@@ -24,5 +24,4 @@ public:
 };
 
 
-
 #endif //ALGORITHM_COLORFUL_STRING_H

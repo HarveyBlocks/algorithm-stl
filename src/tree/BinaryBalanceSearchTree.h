@@ -29,6 +29,7 @@ public:
 
     void leftRotate(BinaryTreeNode<T> *node, BinaryTreeNode<T> *parentNode);
 };
+
 #include "impl/BinaryBalanceSearchTree_impl.h"
 
 #endif //ALGORITHM_BINARY_BALANCE_SEARCH_TREE_H

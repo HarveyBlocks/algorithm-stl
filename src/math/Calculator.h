@@ -64,7 +64,7 @@ public:
         return result;
     }
 
-    [[nodiscard]] virtual String toString(int radix,char separator) const = 0;
+    [[nodiscard]] virtual String toString(int radix, char separator) const = 0;
 
     [[nodiscard]] virtual bool isPositive() const = 0;
 

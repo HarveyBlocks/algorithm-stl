@@ -2,6 +2,7 @@
 #define ALGORITHM_ILLEGAL_STATE_EXCEPTION_H
 
 #include "Exception.h"
+
 class IllegalStateException : public Exception {
 public:
     IllegalStateException(const std::string &msg, const Exception &cause) :
@@ -18,8 +19,6 @@ public:
         return "IllegalStateException : \n" + this->Exception::message();
     }
 };
-
-
 
 
 #endif //ALGORITHM_ILLEGAL_STATE_EXCEPTION_H

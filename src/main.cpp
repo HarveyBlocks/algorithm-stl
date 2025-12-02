@@ -27,17 +27,10 @@ void test4(int a1, int a2) {
     std::cout << "a1=" << a1 << ",a2=" << a2 << std::endl; // 110
 }
 
+
 int main() {
-    std::string str;
-    std::cin >> str;
-    std::cout << "Hello World: " << str << std::endl;
-    /*std::cout << "=====================" << std::endl;
-    test1(10, 100);
-    std::cout << "=====================" << std::endl;
-    test2(10, 100);
-    std::cout << "=====================" << std::endl;
-    test3(10, 100);
-    std::cout << "=====================" << std::endl;
-    test4(10, 100);*/
+    int x = 2, y = 3;
+    const int *p1 = &x; // 指向的内容是常量, 指针本身不是常量
+    int *const p2 = &x; // 指针本身是常量, 指针指向的对象不是常量
     return 0;
 }

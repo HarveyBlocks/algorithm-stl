@@ -31,18 +31,19 @@ private:
                            BinaryTreeNode<T> *sibling,
                            BinaryTreeNode<T> *nodeParent,
                            BinaryTreeNode<T> *nodeGrandParent
-    ) ;
+    );
 
 protected:
     bool removeNode0(Stack<BinaryTreeNode<T> *> &trace) override;
 
     virtual RedBlackTreeNode<T> *castInsertNode(BinaryTreeNode<T> *newNode) const;
+
 public:
     /**
      * @param trace
      * @return 真正增加到树里的节点(由于本函数会对节点进行进一步的封装, 最终的节点和节点可能不一致)
      */
-    BinaryTreeNode<T> * insertNode(Stack<BinaryTreeNode<T> *> &trace) override;
+    BinaryTreeNode<T> *insertNode(Stack<BinaryTreeNode<T> *> &trace) override;
 
 
     std::ostream &printWithColor(std::ostream &os);
@@ -53,6 +54,7 @@ public:
     static bool colorCurrent(BinaryTreeNode<T> *root);
 
 };
+
 #include "impl/RedBlackTree_impl.h"
 
 #endif //ALGORITHM_BLACK_RED_TREE_H

@@ -177,8 +177,6 @@ Data Data::insert(int index, const Byte &value) const {
 }
 
 
-
-
 Data Data::bitOperator(const Data &other, const BiFunction<const Byte &, const Byte &, Byte> &eachByteFunc) const {
     int thisCount = this->byteCount();
     int otherCount = other.byteCount();

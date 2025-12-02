@@ -4,7 +4,7 @@
 
 #include "../../lang/Array.h"
 #include "../../lang/exception/NullPointException.h"
-#include "iostream"
+#include <iostream>
 
 template<class T>
 class SortAlgorithm {
@@ -21,7 +21,7 @@ protected:
         this->count = 0;
     }
 
-    void showCount(std::ostream& os) const {
+    void showCount(std::ostream &os) const {
         os << "O: " << count << "/" << this->arr.getSize() << std::endl;
     }
 

@@ -1,8 +1,8 @@
 #ifndef ALGORITHM_ARRAY_H
 #define ALGORITHM_ARRAY_H
 
-#include "iostream"
-#include "sstream"
+#include <iostream>
+#include <sstream>
 #include "../container/sequence/SequentialAccessibleContainer.h"
 #include "exception/IllegalArgumentException.h"
 #include "exception/IndexOutOfBoundException.h"

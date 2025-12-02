@@ -131,12 +131,12 @@ public:
                 builder.pushFront(separator);
                 count = 0;
             }
-            builder.pushFront( radixRemainder);
+            builder.pushFront(radixRemainder);
             num = quotient;
             count++;
         }
         if (isMinus) {
-            builder.pushFront( '-');
+            builder.pushFront('-');
         }
         return builder.toString();
     }

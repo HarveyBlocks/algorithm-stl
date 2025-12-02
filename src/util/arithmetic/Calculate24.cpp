@@ -33,7 +33,7 @@ void Calculator24::exec() const {
                             ),
                             nums[numArr[3]]
                     );
-                    if ( std::abs(std::abs(result) - target) < 1e-6) {
+                    if (std::abs(std::abs(result) - target) < 1e-6) {
                         list.pushFront(ResultExpression(
                                 i0, i1, i2,
                                 nums[numArr[0]],
@@ -84,7 +84,7 @@ Calculator24::~Calculator24() {
 Calculator24::ResultExpression::ResultExpression(int i0, int i1, int i2, int a, int b, int c, int d, bool methodA) :
         i0(i0), i1(i1), i2(i2), a(a), b(b), c(c), d(d), methodA(methodA) {}
 
-std::ostream &operator<<( std::ostream &os, const Calculator24::ResultExpression &obj) {
+std::ostream &operator<<(std::ostream &os, const Calculator24::ResultExpression &obj) {
     if (obj.methodA) {
         // "((a i2 b ) i1 c) i0 d";
         return os << ArithmeticalOperation::map2Expr(

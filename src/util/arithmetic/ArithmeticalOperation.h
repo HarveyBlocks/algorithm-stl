@@ -6,8 +6,8 @@
 #ifndef ALGORITHM_ARITHMETICAL_OPERATION_H
 #define ALGORITHM_ARITHMETICAL_OPERATION_H
 
-#include "string"
-#include "cfloat"
+#include <string>
+#include <cfloat>
 
 /**
  * 算数操作
@@ -107,7 +107,7 @@ inline char ArithmeticalOperation::map2Char(int index) {
 
 
 inline std::string ArithmeticalOperation::map2Expr(int a, int b, char operatorCharacter) {
-    return map2Expr(std::to_string(a),std:: to_string(b), operatorCharacter);
+    return map2Expr(std::to_string(a), std::to_string(b), operatorCharacter);
 }
 
 inline std::string ArithmeticalOperation::map2Expr(const std::string &a, int b, char operatorCharacter) {

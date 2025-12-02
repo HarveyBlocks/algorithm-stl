@@ -7,10 +7,10 @@
 #define ALGORITHM_INTEGER_H
 
 
-#include <climits>
 #include "../exception/OverflowException.h"
 #include "../exception/DownflowException.h"
-#include "iostream"
+#include <climits>
+#include <iostream>
 
 class Integer {
 private:

@@ -11,7 +11,7 @@ template<class T>
 class PriorityQueue;
 
 template<class T>
-class Heap :public SequentialAccessibleContainer<T> {
+class Heap : public SequentialAccessibleContainer<T> {
 private:
     friend class PriorityQueue<T>;
 

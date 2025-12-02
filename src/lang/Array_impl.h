@@ -177,7 +177,7 @@ Array<T> Array<T>::subArray(int start, int end, int step) {
 
     Array<T> result(abs(end - start));
     if (step > 0) {
-        for (int i = start, j = 0; i < end; i += step,j++) {
+        for (int i = start, j = 0; i < end; i += step, j++) {
             result[j] = this->operator[](i);
         }
     } else {

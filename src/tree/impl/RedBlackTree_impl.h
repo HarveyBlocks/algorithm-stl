@@ -75,7 +75,7 @@ bool RedBlackTree<T>::colorCurrent(BinaryTreeNode<T> *root) {
 }
 
 template<class T>
-BinaryTreeNode<T> * RedBlackTree<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
+BinaryTreeNode<T> *RedBlackTree<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
     // 将节点调整为红黑树的节点
     BinaryTreeNode<T> *newNode = trace.pop();
     if (newNode == nullptr) {

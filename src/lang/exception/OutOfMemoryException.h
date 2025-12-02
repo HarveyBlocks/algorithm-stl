@@ -1,11 +1,8 @@
 #ifndef ALGORITHM_OUT_OF_MEMORY_EXCEPTION_H
 #define ALGORITHM_OUT_OF_MEMORY_EXCEPTION_H
 
-#include <utility>
 
 #include "Exception.h"
-#include "string"
-
 
 
 class OutOfMemoryException : public Exception {

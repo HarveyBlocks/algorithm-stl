@@ -11,56 +11,56 @@
 #include "commons.h"
 
 template<class T>
-class MathComparable : public StrictComparable<const T&> {
+class MathComparable : public StrictComparable<const T &> {
 public:
     virtual T instance(const math::number &value) const = 0;
 
-    bool operator>(const T& calculator) const override {
-        return StrictComparable<const T&>::operator>(calculator);
+    bool operator>(const T &calculator) const override {
+        return StrictComparable<const T &>::operator>(calculator);
     }
 
-    bool operator<(const T& calculator) const override {
-        return StrictComparable<const T&>::operator<(calculator);
+    bool operator<(const T &calculator) const override {
+        return StrictComparable<const T &>::operator<(calculator);
     }
 
-    bool operator==(const T& calculator) const override {
-        return StrictComparable<const T&>::operator==(calculator);
+    bool operator==(const T &calculator) const override {
+        return StrictComparable<const T &>::operator==(calculator);
     }
 
-    bool operator!=(const T& calculator) const override {
-        return StrictComparable<const T&>::operator!=(calculator);
+    bool operator!=(const T &calculator) const override {
+        return StrictComparable<const T &>::operator!=(calculator);
     }
 
-    bool operator>=(const T& calculator) const override {
-        return StrictComparable<const T&>::operator>=(calculator);
+    bool operator>=(const T &calculator) const override {
+        return StrictComparable<const T &>::operator>=(calculator);
     }
 
-    bool operator<=(const T& calculator) const override {
-        return StrictComparable<const T&>::operator<=(calculator);
+    bool operator<=(const T &calculator) const override {
+        return StrictComparable<const T &>::operator<=(calculator);
     }
 
     virtual bool operator>(const math::number &value) const {
-        return StrictComparable<const T&>::operator>(instance(value));
+        return StrictComparable<const T &>::operator>(instance(value));
     }
 
     virtual bool operator<(const math::number &value) const {
-        return StrictComparable<const T&>::operator<(instance(value));
+        return StrictComparable<const T &>::operator<(instance(value));
     }
 
     virtual bool operator==(const math::number &value) const {
-        return StrictComparable<const T&>::operator==(instance(value));
+        return StrictComparable<const T &>::operator==(instance(value));
     }
 
     virtual bool operator!=(const math::number &value) const {
-        return StrictComparable<const T&>::operator!=(instance(value));
+        return StrictComparable<const T &>::operator!=(instance(value));
     }
 
     virtual bool operator>=(const math::number &value) const {
-        return StrictComparable<const T&>::operator>=(instance(value));
+        return StrictComparable<const T &>::operator>=(instance(value));
     }
 
     virtual bool operator<=(const math::number &value) const {
-        return StrictComparable<const T&>::operator<=(instance(value));
+        return StrictComparable<const T &>::operator<=(instance(value));
     }
 };
 

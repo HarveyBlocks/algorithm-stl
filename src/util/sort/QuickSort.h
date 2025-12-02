@@ -20,6 +20,7 @@ private:
     struct IndexBound {
         int start;
         int end;
+
         IndexBound(int start, int end) : start(start), end(end) {}
     };
 

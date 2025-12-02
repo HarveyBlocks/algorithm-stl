@@ -6,8 +6,8 @@ int selectDemo() {
     Random::resetSeed();
     int length = 37;
     Array<int> test(length);
-    Producer< int> producer = []() { return Random::signedInt() % 256; };
-    ArrayInitializer::init(test,producer);
+    Producer<int> producer = []() { return Random::signedInt() % 256; };
+    ArrayInitializer::init(test, producer);
     std::cout << test << std::endl;
     int tail = Arrays::tail(test, 3);
     std::cout << tail << std::endl;
@@ -29,10 +29,10 @@ int findDemo() {
         return a - b;
     };
 
-    Producer< int> producer = []() { return Random::signedInt() % 256; };
+    Producer<int> producer = []() { return Random::signedInt() % 256; };
     int i = 10000;
     while (i--) {
-        ArrayInitializer::init(test,producer);
+        ArrayInitializer::init(test, producer);
         InsertionSort(test).sort();
         test[length - 1] = INT_MAX;
 
@@ -77,7 +77,7 @@ void checkFindCurrent(const Array<int> &test, int value, int index) {
     if (index >= 0) {
         if (test[index] == value) {}
         else {
-            std::cout << test <<std:: endl;
+            std::cout << test << std::endl;
             std::cout << "find: " << value << " at [" << index << "] = " << test[index] << std::endl;
         }
     } else {

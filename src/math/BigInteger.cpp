@@ -165,7 +165,7 @@ void BigInteger::initData(math::number value, int size) {
     for (int i = 0; i < size; ++i) {
         this->data.setByte(-i - 1, Byte((value >> (i * Byte::BIT_COUNT)) & 0xff));
     }
-    // this->data.setByte(0,size, funcIndex())
+    // this->data.setByte(0,dataSize, funcIndex())
 }
 
 BigInteger &BigInteger::shrink(bool isMinus) {
@@ -665,15 +665,15 @@ String BigInteger::toString(int radix, char separator) const {
         auto remainderValue = (math::number) remainder;
         char radixRemainder = number2Character(remainderValue);
         if (separator != 0 && count == 4) {
-            builder.pushFront( separator);
+            builder.pushFront(separator);
             count = 0;
         }
-        builder.pushFront( radixRemainder);
+        builder.pushFront(radixRemainder);
         num = quotient;
         count++;
     }
     if (isMinus) {
-        builder.pushFront( '-');
+        builder.pushFront('-');
     }
     return builder.toString();
 }

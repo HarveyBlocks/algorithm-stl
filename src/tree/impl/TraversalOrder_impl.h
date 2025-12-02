@@ -9,7 +9,8 @@
 #include "../TraversalOrder.h"
 
 template<class T>
-DoubleBranchedTraversalOrder<T>::DoubleBranchedTraversalOrder(BiConsumer<Stack<BinaryTreeNode<T> *> &,  BinaryTreeNode<T> *> order)
+DoubleBranchedTraversalOrder<T>::DoubleBranchedTraversalOrder(
+        BiConsumer<Stack<BinaryTreeNode<T> *> &, BinaryTreeNode<T> *> order)
         :BiConsumer<Stack<BinaryTreeNode<T> *> &, BinaryTreeNode<T> *>(order) {}
 
 template<class T>
@@ -34,7 +35,7 @@ DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::choose(tree::Tr
 
 
 template<class T>
-void DoubleBranchedTraversalOrder<T>::traversalRoot(Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *root) {
+void DoubleBranchedTraversalOrder<T>::traversalRoot(Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *root) {
     st.push(root);                          // 添加中节点
     st.push(nullptr); // 中节点访问过，但是还没有处理，加入空节点做为标记。
 }
@@ -49,7 +50,7 @@ void DoubleBranchedTraversalOrder<T>::traversalBranch(Stack<BinaryTreeNode<T> *>
 template<class T>
 DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createMrl() {
     return DoubleBranchedTraversalOrder(
-            [](Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *node) {
+            [](Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *node) {
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getLeft());
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getRight());
                 DoubleBranchedTraversalOrder<T>::traversalRoot(st, node);
@@ -59,7 +60,7 @@ DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createMrl() {
 template<class T>
 DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createLrm() {
     return DoubleBranchedTraversalOrder(
-            [](Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *node) {
+            [](Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *node) {
                 DoubleBranchedTraversalOrder<T>::traversalRoot(st, node);
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getRight());
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getLeft());
@@ -69,7 +70,7 @@ DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createLrm() {
 template<class T>
 DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createLmr() {
     return DoubleBranchedTraversalOrder(
-            [](Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *node) {
+            [](Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *node) {
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getRight());
                 DoubleBranchedTraversalOrder<T>::traversalRoot(st, node);
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getLeft());
@@ -79,7 +80,7 @@ DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createLmr() {
 template<class T>
 DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createMlr() {
     return DoubleBranchedTraversalOrder(
-            [](Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *node) {
+            [](Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *node) {
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getRight());
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getLeft());
                 DoubleBranchedTraversalOrder<T>::traversalRoot(st, node);
@@ -89,7 +90,7 @@ DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createMlr() {
 template<class T>
 DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createRlm() {
     return DoubleBranchedTraversalOrder(
-            [](Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *node) {
+            [](Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *node) {
                 DoubleBranchedTraversalOrder<T>::traversalRoot(st, node);
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getLeft());
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getRight());
@@ -99,7 +100,7 @@ DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createRlm() {
 template<class T>
 DoubleBranchedTraversalOrder<T> DoubleBranchedTraversalOrder<T>::createRml() {
     return DoubleBranchedTraversalOrder(
-            [](Stack<BinaryTreeNode<T> *> &st,  BinaryTreeNode<T> *node) {
+            [](Stack<BinaryTreeNode<T> *> &st, BinaryTreeNode<T> *node) {
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getLeft());
                 DoubleBranchedTraversalOrder<T>::traversalRoot(st, node);
                 DoubleBranchedTraversalOrder<T>::traversalBranch(st, node->getRight());

@@ -1,10 +1,7 @@
 #ifndef ALGORITHM_NULL_POINT_EXCEPTION_H
 #define ALGORITHM_NULL_POINT_EXCEPTION_H
 
-#include <utility>
-
 #include "Exception.h"
-#include "string"
 
 class NullPointException : public Exception {
 public:
@@ -16,7 +13,7 @@ public:
 
     }
 
-    explicit NullPointException(const  std::string &msg) : Exception(msg) {
+    explicit NullPointException(const std::string &msg) : Exception(msg) {
 
     }
 

@@ -12,7 +12,7 @@
 template<class T>
 class SequentialAccessibleContainer : public Container<T> {
 public:
-    T& at(int index) const{
+    T &at(int index) const {
         return this->operator[](index);
     }
 

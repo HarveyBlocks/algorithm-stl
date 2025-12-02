@@ -88,7 +88,7 @@ public:
     static bool same(const Array<T> &arr1, const Array<T> &arr2);
 
     template<class T>
-    static T tail(Array<T> & arr, int level);
+    static T tail(Array<T> &arr, int level);
 
     /**
      * 因为会对数组内容发生改变, 所以得先拷贝一遍(悲)
@@ -116,7 +116,7 @@ T Arrays::head(Array<T> &arr, int level) {
 }
 
 template<class T>
-T Arrays::tail(Array<T> & arr, const int level) {
+T Arrays::tail(Array<T> &arr, const int level) {
     // level = 1表示smallest, index = 0
     if (level <= 0 || level > arr.getSize()) {
         throw IllegalArgumentException();
@@ -140,7 +140,9 @@ T Arrays::randomSelect(Array<T> &arr, int start, int end, int level) {
         return Arrays::randomSelect(arr, mid + 1, end, level);
     }
 }
+
 #include "function/function.h"
+
 class ArrayInitializer {
 public:
     template<class T>

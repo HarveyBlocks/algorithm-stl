@@ -13,7 +13,7 @@
 template<class T>
 class Treap : public BinaryBalanceSearchTree<T> {
 public:
-    BinaryTreeNode<T> * insertNode(Stack<BinaryTreeNode<T> *> &trace) override;
+    BinaryTreeNode<T> *insertNode(Stack<BinaryTreeNode<T> *> &trace) override;
 
     /**
      * 通过旋转调整treap的结构, 使其满足Heap的性质
@@ -76,7 +76,7 @@ public:
 };
 
 template<class T>
-BinaryTreeNode<T> * Treap<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
+BinaryTreeNode<T> *Treap<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
     // 将节点调整为堆树的节点
     BinaryTreeNode<T> *newNode = trace.pop();
     if (newNode == nullptr) {
@@ -118,7 +118,7 @@ bool Treap<T>::treapInsertAdjustByRotation(Stack<BinaryTreeNode<T> *> &trace) {
 }
 
 template<class T>
-std::ostream &Treap<T>::printPriority(std::ostream &os) const{
+std::ostream &Treap<T>::printPriority(std::ostream &os) const {
     return Treap<T>::printPriority(os, this->root);
 }
 

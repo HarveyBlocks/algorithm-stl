@@ -112,7 +112,7 @@ int rightMoveDemo() {
     for (int i = 1; i <= 1000000L; ++i) {
         BigInteger bigInteger(Random::signedLongLong());
         if (i % 100000L == 0) {
-            std::cout << "checkpoint, a.size=" << bigInteger.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << bigInteger.byteCount() << std::endl;
         }
         for (int j = 0; j < bigInteger.byteCount() * Byte::BIT_COUNT + 5; ++j) {
             std::cout << (std::string) (bigInteger >> j) << "\t" << (math::number) (bigInteger >> j) << std::endl;
@@ -125,7 +125,7 @@ int leftMoveDemo() {
     for (int i = 1; i <= 1000000L; ++i) {
         BigInteger bigInteger(Random::signedShort());
         if (i % 100000L == 0) {
-            std::cout << "checkpoint, a.size=" << bigInteger.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << bigInteger.byteCount() << std::endl;
         }
         for (int j = 0; j < 125; ++j) {
             std::cout << (std::string) (bigInteger << j) << "\t" << (math::number) (bigInteger << j) << std::endl;
@@ -163,7 +163,7 @@ int constructorDemo() {
         auto num = (math::number) Random::unsignedLongLong();
         ByteBigInteger a(num);
         if (i % 100000L == 0) {
-            std::cout << "checkpoint, a.size=" << a.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << a.byteCount() << std::endl;
         }
         if (((math::number) a) != num) {
             std::cout << num << std::endl;
@@ -235,7 +235,7 @@ int addSubDemo() {
 
 
         if (i % 100000L == 0) {
-            std::cout << "checkpoint, a.size=" << sum.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << sum.byteCount() << std::endl;
         }
         if ((math::number) sum != (num1 + num2)) {
             std::cout << "num1 = " << math::MathCommons::binaryNumberString(std::abs(num1)) << std::endl;
@@ -278,7 +278,7 @@ int increaseDemo() {
     for (math::number i = -/*200212132413011231*/0022L; i < /*20021213241301123*/10023L; ++i) {
         auto result = (math::number) (++bigInteger);
         if (i % 100000L == 0) {
-            std::cout << "checkpoint, a.size=" << bigInteger.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << bigInteger.byteCount() << std::endl;
         }
         if (result != i) {
             std::cout << "false" << std::endl;
@@ -313,7 +313,7 @@ int compositeDemo() {
         auto num = (math::number) Random::unsignedLongLong();
         ByteBigInteger a(num);
         if (i % 100000L == 0) {
-            std::cout << "checkpoint, a.size=" << a.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << a.byteCount() << std::endl;
         }
         if (((math::number) -a) != -num) {
             std::cout << num << std::endl;
@@ -352,9 +352,9 @@ int multiplyDemo() {
 
         const ByteBigInteger &integer = bigInteger1 * bigInteger2;
         if (i % 10000L == 0) {
-            std::cout << "checkpoint, a.size=" << bigInteger1.byteCount() <<
-                      ", b.size=" << bigInteger2.byteCount() <<
-                      ", result.size=" << integer.byteCount() << std::endl;
+            std::cout << "checkpoint, a.dataSize=" << bigInteger1.byteCount() <<
+                      ", b.dataSize=" << bigInteger2.byteCount() <<
+                      ", result.dataSize=" << integer.byteCount() << std::endl;
         }
         auto result = (math::number) integer;
         math::number cppResult = num1 * num2;
@@ -413,7 +413,7 @@ int divideDemo() {
             }
         }
         if (i % 16 == 0) {
-            std::cout << "[" << i / 16 << "]checkpoint: remainder.size = " << remainder.byteCount() << std::endl;
+            std::cout << "[" << i / 16 << "]checkpoint: remainder.dataSize = " << remainder.byteCount() << std::endl;
         }
     }
     for (int index = 0; index < 100000; ++index) {
@@ -438,7 +438,8 @@ int divideDemo() {
             remainder.printMessage("remainder");
         }*/
         if (index % 1000 == 0) {
-            std::cout << "[" << index / 1000 << "]checkpoint: remainder.size = " << remainder.byteCount() << std::endl;
+            std::cout << "[" << index / 1000 << "]checkpoint: remainder.dataSize = " << remainder.byteCount()
+                      << std::endl;
         }
     }
     return 0;
@@ -460,7 +461,7 @@ int factorial() {
     for (int i = 2; i <= n; i++) {
         bigInteger = ByteBigInteger::multiply(bigInteger, ByteBigInteger(i));
         if (i % 100 == 0) {
-            std::cout << "[" << i << "]checkpoint: remainder.size = " << bigInteger.byteCount() << std::endl;
+            std::cout << "[" << i << "]checkpoint: remainder.dataSize = " << bigInteger.byteCount() << std::endl;
         }
     }
     std::cout << bigInteger.toString(10, 0).getSize() << std::endl;

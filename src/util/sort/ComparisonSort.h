@@ -5,7 +5,6 @@
 #include "../Comparator.h"
 
 
-
 template<class T>
 class ComparisonSort : public SortAlgorithm<T> {
 protected:

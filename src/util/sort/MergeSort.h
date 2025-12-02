@@ -12,10 +12,10 @@ private:
 
 
 public:
-    MergeSort(Array<T>& arr, const Compare<T> & cmp)
+    MergeSort(Array<T> &arr, const Compare<T> &cmp)
             : ComparisonSort<T>(arr, cmp) {}
 
-    explicit MergeSort(Array<T>& arr, bool ascending = true)
+    explicit MergeSort(Array<T> &arr, bool ascending = true)
             : ComparisonSort<T>(arr, ascending) {}
 
     void sort() override;

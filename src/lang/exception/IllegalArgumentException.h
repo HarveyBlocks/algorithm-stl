@@ -3,7 +3,7 @@
 
 #include "Exception.h"
 
-class IllegalArgumentException :public Exception {
+class IllegalArgumentException : public Exception {
 public:
     IllegalArgumentException(const std::string &msg, const Exception &cause) :
             Exception(msg, cause) {}

@@ -19,7 +19,7 @@
 #include "../../container/sequence/Stack.h"
 #include "../../container/sequence/Queue.h"
 
-class  TernaryExpression {
+class TernaryExpression {
 protected:
     TernaryExpression() = default;
 
@@ -56,7 +56,7 @@ public:
 
     ~TernaryExpressionEnd() override = default;
 
-   static TernaryExpressionEnd *castToEnd(TernaryExpression *origin);;
+    static TernaryExpressionEnd *castToEnd(TernaryExpression *origin);;
 };
 
 struct TernaryExpressions {
@@ -76,14 +76,18 @@ private:
         DoublyLinkedNode<String> *pre;
         DoublyLinkedNode<String> *post;
         int interval = 0;
+
         LinkedListNodePair(DoublyLinkedNode<String> *pre, DoublyLinkedNode<String> *post);
+
     private:
         [[nodiscard]] bool noPair() const;
+
         [[nodiscard]] int calInterval() const;
     };
 
 public:
     TernaryExpressionPhaser(const String &preToken, const String &postToken);
+
     [[nodiscard]] TernaryExpression *phase(const String &text) const;
 
     [[nodiscard]] bool isToken(const String &str) const;

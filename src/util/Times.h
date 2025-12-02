@@ -13,9 +13,9 @@ public:
     static double timing(Runnable *runnable);
 
     static int millionTime(void (*fun)()) {
-        clock_t start =  std::clock();
+        clock_t start = std::clock();
         // fun();
-        clock_t end =  std::clock();
+        clock_t end = std::clock();
         return (int) (end - start);
     }
 };

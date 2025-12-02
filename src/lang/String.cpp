@@ -251,6 +251,7 @@ int String::getFirstIndex(const String &src, const String &pattern, int begin, i
 int String::getFirstIndex(const String &pattern, int begin, int end) const {
     return String::getFirstIndex(*this, pattern, begin, end);
 }
+
 bool String::exist(const String &pattern, int begin, int end) const {
     return getFirstIndex(pattern, begin, end) >= 0;
 }

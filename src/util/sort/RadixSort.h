@@ -7,7 +7,7 @@
 #include "../../lang/exception/IllegalArgumentException.h"
 
 //template<class T>
-class RadixSort :public SortAlgorithm<unsigned int> {
+class RadixSort : public SortAlgorithm<unsigned int> {
 private:
     static const int MAX_BYTE = 256;
 

@@ -1,9 +1,9 @@
 #ifndef ALGORITHM_EXCEPTION_H
 #define ALGORITHM_EXCEPTION_H
 
-#include "string"
+#include <string>
 
-class Exception :  std::exception {
+class Exception : std::exception {
 private:
     std::string msg;
     Exception *exception = nullptr;
@@ -15,18 +15,19 @@ private:
     }
 
 public:
-    explicit Exception(const  std::string &msg, const Exception &cause) : msg(msg + "\n"), exception(new Exception(cause)) {
+    explicit Exception(const std::string &msg, const Exception &cause) : msg(msg + "\n"),
+                                                                         exception(new Exception(cause)) {
 
     }
 
-    explicit Exception(const  std::string &msg) : msg(msg + "\n"), exception(nullptr) {
+    explicit Exception(const std::string &msg) : msg(msg + "\n"), exception(nullptr) {
 
     }
 
 
     explicit Exception() = default;
 
-    [[nodiscard]] virtual  std::string message() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {
+    [[nodiscard]] virtual std::string message() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {
         std::string str = "Exception : " + msg + "\n";
         if (exception != nullptr) {
             str += exception->message();

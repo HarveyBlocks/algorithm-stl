@@ -6,7 +6,7 @@
 #ifndef ALGORITHM_BASE_OBJECT_H
 #define ALGORITHM_BASE_OBJECT_H
 
-#include "iostream"
+#include <iostream>
 
 class BaseObject {
     int hashCode() const {

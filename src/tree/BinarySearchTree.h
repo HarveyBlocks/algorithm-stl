@@ -9,10 +9,10 @@
 #include "BinaryTree.h"
 
 #define GO_LEFT_BY(cmp) ((cmp)>=0)
+
 template<class T>
 class BinarySearchTree : public BinaryTree<T> {
 private:
-
 
     /**
      * 使用循环删除都有左右子树的情况
@@ -23,6 +23,7 @@ private:
      * 使用递归删除都有左右子树的情况
      */
     void removeNodeByRecursive(Stack<BinaryTreeNode<T> *> &trace);
+
 protected:
     /**
      * @return 如果需要左右子树都存在, 需要递归/循环删除, 则返回true
@@ -44,7 +45,7 @@ public:
      * @param trace 该函数保证, 不会更改原trace, trace的栈顶是要新增加的节点
      * 次数trace.empty() 说明是根节点需要被删除
      */
-    virtual BinaryTreeNode<T> * insertNode(Stack<BinaryTreeNode<T> *> &trace);
+    virtual BinaryTreeNode<T> *insertNode(Stack<BinaryTreeNode<T> *> &trace);
 
     /**
      * 不会被递归(其内部含递归)

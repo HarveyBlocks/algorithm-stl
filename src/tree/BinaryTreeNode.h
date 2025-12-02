@@ -35,6 +35,7 @@ public:
     virtual void setRight(BinaryTreeNode<T> *right);
 
     virtual void setLeft(BinaryTreeNode<T> *left);
+
     /**
      * 只比值, 不比左右子树
      */
@@ -48,7 +49,6 @@ public:
         return os << *(obj.value);
     }
 };
-
 
 
 #include "impl/BinaryTreeNode_impl.h"

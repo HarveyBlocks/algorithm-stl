@@ -31,7 +31,7 @@ void PermutationIterator::toNext(Array<int> &array) {
     array.reverse(i + 1, len - 1);
 }
 
-PermutationIterator::PermutationIterator(int n):nums(new Array<int>(n)),last(new Array<int>(n)) {
+PermutationIterator::PermutationIterator(int n) : nums(new Array<int>(n)), last(new Array<int>(n)) {
     for (int i = 0; i < n; ++i) {
         (*nums)[i] = i;
     }

@@ -3,7 +3,7 @@
 
 #include "Exception.h"
 
-class DownflowException :public Exception {
+class DownflowException : public Exception {
 public:
     DownflowException(const std::string &msg, const Exception &cause) :
             Exception(msg, cause) {}

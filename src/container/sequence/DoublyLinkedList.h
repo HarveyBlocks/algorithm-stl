@@ -87,7 +87,7 @@ public:
      * 是端点, 指node的pre为head或post为tail, 当然, 参数必须来自该链表, 否则本方法不会进行检查
      * @return
      */
-    bool isEndpoint(DoublyLinkedNode<T> *node)const {
+    bool isEndpoint(DoublyLinkedNode<T> *node) const {
         if (node == nullptr) {
             throw NullPointException();
         }
@@ -96,11 +96,12 @@ public:
         }
         return node->pre == head || node->post == tail;
     }
+
     /**
     * 是哨兵, 指node为head或tail, 当然, 参数必须来自该链表, 否则本方法不会进行检查
     * @return
     */
-    bool isSentinel(DoublyLinkedNode<T> *node)const {
+    bool isSentinel(DoublyLinkedNode<T> *node) const {
         if (node == nullptr) {
             throw NullPointException();
         }

@@ -11,14 +11,14 @@
 template<class T>
 class AvlTree : public BinaryBalanceSearchTree<T> {
 public:
-    BinaryTreeNode<T> * insertNode(Stack<BinaryTreeNode<T> *> &trace) override;
+    BinaryTreeNode<T> *insertNode(Stack<BinaryTreeNode<T> *> &trace) override;
 
     void removeNode(Stack<BinaryTreeNode<T> *> &trace) override;
 };
 
 
 template<class T>
-BinaryTreeNode<T> * AvlTree<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
+BinaryTreeNode<T> *AvlTree<T>::insertNode(Stack<BinaryTreeNode<T> *> &trace) {
     this->BinarySearchTree<T>::insertNode(trace);
     BinaryTreeNode<T> *node = trace.pop();
     BinaryTreeNode<T> *pNode = node;

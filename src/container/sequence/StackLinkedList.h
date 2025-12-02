@@ -9,16 +9,16 @@ template<class T>
 class StackLinkedList : public LinkedList<T> {
 private:
 
-    StackLinkedNode <T> *head;
+    StackLinkedNode<T> *head;
     mutable int size;
 public:
     StackLinkedList();
 
     StackLinkedList(const StackLinkedList<T> &list);
 
-    void pushFront(const T &value) const ;
+    void pushFront(const T &value) const;
 
-    void popFront()  const override;
+    void popFront() const override;
 
     T &front() const override;
 
@@ -30,7 +30,7 @@ public:
 
     [[nodiscard]] bool empty() const override;
 
-    void forEach(const Function<T &, bool>& task) const override;
+    void forEach(const Function<T &, bool> &task) const override;
 };
 
 

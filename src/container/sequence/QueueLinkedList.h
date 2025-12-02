@@ -58,7 +58,7 @@ public:
      */
     void forEach(const Function<T &, bool> &task) const;
 
-     QueueLinkedList<T> &operator=(const QueueLinkedList<T> &list);
+    QueueLinkedList<T> &operator=(const QueueLinkedList<T> &list);
 };
 
 

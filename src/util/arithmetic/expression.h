@@ -63,6 +63,7 @@ public:
         return num;
     }
 };
+
 /**
  * 双目运算
  */

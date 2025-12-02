@@ -6,7 +6,7 @@
 #ifndef ALGORITHM_NUMBER_H
 #define ALGORITHM_NUMBER_H
 
-#include "string"
+#include <string>
 
 enum NumberType {
     DEFAULT, BYTE, INTEGER, LONG, FLOUT, DOUBLE

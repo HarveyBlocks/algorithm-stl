@@ -48,7 +48,6 @@ public:
 };
 
 
-
 #include "impl/Stack_impl.h"
 
 #endif //ALGORITHM_STACK_H
