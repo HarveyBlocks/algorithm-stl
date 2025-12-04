@@ -25,6 +25,7 @@ void showDatas(const vector<int> &data, ostream &os) {
 }
 
 int btreeDemoLoop() {
+    std::cout << "loop" << std::endl;
     int cnt = 1000;
     // ofstream os("../data.txt");
     while (cnt-- > 0) {
@@ -36,9 +37,7 @@ int btreeDemoLoop() {
         BTree<int, Greater<int>> bTree(int(Random::unsignedInt() % 20 + 3));
         buildBTree(bTree, datas);
         if (cnt % 100 == 0) {
-            std::cout << "ping..." << std::endl;
-            // bTree.showBTree(os);
-            std::cout << bTree.calRate() << std::endl;
+            std::cout << "ping..." << bTree.calRate() << std::endl;
         }
         Random::shuffle(datas);
         for (const auto &item: datas) {
@@ -51,8 +50,9 @@ int btreeDemoLoop() {
 
 
 int bigDataBtreeDemo() {
+    std::cout << "big data" << std::endl;
 //    ofstream os("../data.txt");
-    size_t size = 1000000;
+    size_t size = 10000000;
     Random::resetSeed();
     vector<int> datas(size);
     for (int i = 0; i < size; ++i) {
@@ -60,15 +60,13 @@ int bigDataBtreeDemo() {
     }
     BTree<int, Greater<int>> bTree(20);
     buildBTree(bTree, datas);
-    std::cout << "ping..." << std::endl;
-    // bTree.showBTree(os);
-//    os.close();
-    std::cout << bTree.calRate() << std::endl;
-    std::cout << "pong..." << std::endl;
     Random::shuffle(datas);
-    for (const auto &item: datas) {
-        IntBTreeTrace trace = bTree.search(item);
+    for (int i = 0; i < datas.size(); ++i) {
+        IntBTreeTrace trace = bTree.search(datas[i]);
         bTree.remove(trace);
+        if (i % 100000 == 0) {
+            std::cout << "ping..." << bTree.calRate() << std::endl;
+        }
     }
     return 0;
 }
