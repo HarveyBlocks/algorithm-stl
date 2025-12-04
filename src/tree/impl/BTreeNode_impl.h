@@ -2,8 +2,8 @@
 // Created by Lenovo on 2025/12/2.
 //
 
-#ifndef ALGORITHM_B_TREE_NODE_H
-#define ALGORITHM_B_TREE_NODE_H
+#ifndef ALGORITHM_BTREE_NODE_H
+#define ALGORITHM_BTREE_NODE_H
 
 #include "../../util/Objects.h"
 #include "../BTree.h"
@@ -26,23 +26,21 @@ BTreeNode<T, Cmp>::~BTreeNode() {
 
 template<typename T, typename Cmp>
 int BTreeNode<T, Cmp>::search(const T &value, const BTree<T, Cmp> *belong) const {
-    // 依据level, 获悉datas长度, 即可返回目标索引
-    // TODO 用二叉查找优化
-    for (int i = 0; i <= size; ++i) {
-        if (i == size) {
-            return -i - 1;
-        }
-        T *data = datas[i];
+    int high = size - 1;
+    int low = 0;
+    while (low <= high) {
+        int mid = int(low + ((unsigned int) (high - low) >> 1));
+        T *data = datas[mid];
         int cmp = belong->cmp(*data, value);
-        if (cmp == 0) {
-            return i;
+        if (cmp < 0) {
+            low = mid + 1;
         } else if (cmp > 0) {
-            // result is between (i-1,i)
-            return -i - 1;
+            high = mid - 1;
+        } else {
+            return mid; // key found
         }
     }
-    // never
-    return -size;
+    return -(low + 1);  // key not found.
 }
 
 template<typename T, typename Cmp>
@@ -61,11 +59,17 @@ bool BTreeNode<T, Cmp>::empty() const {
 }
 
 template<typename T, typename Cmp>
+bool BTreeNode<T, Cmp>::leaf() const {
+    return this->children[this->size] == nullptr;
+}
+
+template<typename T, typename Cmp>
 bool BTreeNode<T, Cmp>::insert(int index, T *data, int level, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp> *right) {
     Objects::requireTrue(index <= size, "can not insert after node dataSize");
     Objects::checkTrue(size < level - 1, "tree node is full");
     for (int i = size; i > index; --i) {
         datas[i] = datas[i - 1];
+        children[i + 1] = children[i];
     }
     datas[index] = data;
     size++;
@@ -126,6 +130,7 @@ void BTreeNode<T, Cmp>::split(T *&mid, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp
     right->children[right->size] = this->children[level];
 }
 
+
 template<typename T, typename Cmp>
 T *BTreeNode<T, Cmp>::resetData(int index, const T &value) {
     T *old = datas[index];
@@ -139,45 +144,101 @@ T *BTreeNode<T, Cmp>::dataAt(int index) const {
     return datas[index];
 }
 
+template<typename T, typename Cmp>
+void BTreeNode<T, Cmp>::insertFirst(T *data, BTreeNode<T, Cmp> *firstChild) {
+    for (int i = size; i > 0; --i) {
+        datas[i] = datas[i - 1];
+        children[i + 1] = children[i];
+    }
+    children[1] = children[0];
+    // 添加data和children
+    children[0] = firstChild;
+    datas[0] = data;
+    size++;
+}
+
+template<typename T, typename Cmp>
+void BTreeNode<T, Cmp>::removeFirst() {
+    for (int i = 0; i < size - 1; ++i) {
+        datas[i] = datas[i + 1];
+        children[i] = children[i + 1];
+    }
+    children[size - 1] = children[size];
+    // 删除多余的data和children
+    children[size] = nullptr;
+    size--;
+    datas[size] = nullptr;
+}
 #ifdef DEBUG
 
 #include <queue>
 
 template<typename T, typename Cmp>
-void BTreeNode<T, Cmp>::showBTree(int level) const {
-    std::queue<std::pair<const BTreeNode<T, Cmp> *, int>> que;
-    int depth = 0;
-    que.push({this, depth});
+double BTree<T, Cmp>::calRate() const {
+    std::queue<const BTreeNode<T, Cmp> *> que;
+    que.push(this->root);
+    unsigned long long used = 0;
+    unsigned long long nodeCnt = 0;
+    // (id,size,parent)
     while (!que.empty()) {
-        std::pair<const BTreeNode<T, Cmp> *, int> front = que.front();
+        const BTreeNode<T, Cmp> *node = que.front();
         que.pop();
-        const BTreeNode<T, Cmp> *node = front.first;
-        int nowDepth = front.second;
-        if (nowDepth > depth) {
-            std::cout << std::endl;
-            depth = nowDepth;
-        }
         if (node == nullptr) {
-            std::cout << "nil_node " << std::flush;
             continue;
         }
-        std::cout << node->size << "(";
+        nodeCnt++;
         for (int i = 0; i < level - 1; ++i) {
             T *data = node->datas[i];
             if (data != nullptr) {
-                std::cout << *data;
-            } else {
-                std::cout << "nil";
+                used++;
             }
-            std::cout << "|)"[i == level - 2] << std::flush;
-            que.push({node->children[i], depth + 1});
+            que.push(node->children[i]);
         }
-        std::cout << "\t";
-        que.push({node->children[level - 1], depth + 1});
+        que.push(node->children[level - 1]);
     }
-    std::cout << std::endl;
+    return double(used) * 1.0 / nodeCnt / (level - 1);
+}
+
+template<typename T, typename Cmp>
+void BTreeNode<T, Cmp>::showBTree(int level, std::ostream &os) const {
+    std::queue<std::pair<const BTreeNode<T, Cmp> *, std::pair<int, std::pair<int, int>>>> que;
+    int depth = 0;
+    int cnt = 0;
+    que.emplace(this, std::pair<int, std::pair<int, int>>{depth, std::pair<int, int>{cnt++, -1}});
+    // (id,size,parent)
+    while (!que.empty()) {
+        std::pair<const BTreeNode<T, Cmp> *, std::pair<int, std::pair<int, int>>> front = que.front();
+        que.pop();
+        const BTreeNode<T, Cmp> *node = front.first;
+        int nowDepth = front.second.first;
+        int id = front.second.second.first;
+        int parentId = front.second.second.second;
+        if (nowDepth > depth) {
+            os << std::endl;
+            depth = nowDepth;
+        }
+        if (node == nullptr) {
+            continue;
+        }
+        os << "(" << id << "|" << node->size << "|" << parentId << ")" << "(";
+        for (int i = 0; i < level - 1; ++i) {
+            T *data = node->datas[i];
+            if (data != nullptr) {
+                os << *data;
+            } else {
+                os << "n";
+            }
+            os << "|)"[i == level - 2] << std::flush;;;
+            que.push({node->children[i],
+                      std::pair<int, std::pair<int, int>>{depth + 1, std::pair<int, int>{cnt++, id}}});
+        }
+        os << "\t";
+        que.push({node->children[level - 1],
+                  std::pair<int, std::pair<int, int>>{depth + 1, std::pair<int, int>{cnt++, id}}});
+    }
+    os << std::endl;
 }
 
 #endif
 
-#endif //ALGORITHM_B_TREE_NODE_H
+#endif //ALGORITHM_BTREE_NODE_H

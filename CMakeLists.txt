@@ -148,4 +148,5 @@ add_executable(algorithm
         src/util/Objects.h
         src/tree/impl/BTreeNode_impl.h
         src/tree/BTree.h
+        src/tree/impl/BTreeElement_impl.h
 )

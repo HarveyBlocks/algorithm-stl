@@ -55,6 +55,25 @@ StackLinkedList<T>::~StackLinkedList() {
     delete head;
 }
 
+
+template<class T>
+StackLinkedList<T> &StackLinkedList<T>::operator=(const StackLinkedList<T> &src) {
+    if (this == &src) {
+        return *this;
+    }
+    this->clear();
+    this->size = src.size;
+    StackLinkedNode<T> *srcCur = src.head->next;
+    StackLinkedNode<T> *tarCur = this->head;
+    while (srcCur != nullptr) {
+        tarCur->next = new StackLinkedNode<T>(*(srcCur->value), nullptr);
+        tarCur = tarCur->next;
+        srcCur = srcCur->next;
+    }
+    return *this;
+}
+
+
 template<class T>
 int StackLinkedList<T>::getSize() const {
     return size;

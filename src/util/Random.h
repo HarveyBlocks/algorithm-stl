@@ -3,6 +3,7 @@
 
 #include <random>
 #include <ctime>
+#include <vector>
 #include "../lang/exception/IllegalArgumentException.h"
 
 class Random {
@@ -42,6 +43,8 @@ public:
     static long long int signedLongLong();
 
     static unsigned long long unsignedLongLong();
+    static void shuffle(std::vector<int> &arr);
+
 
 private:
     static unsigned long long initValue(long long targetByteSize);

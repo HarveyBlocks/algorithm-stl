@@ -7,19 +7,74 @@
 
 #include "../util/Comparator.h"
 #include "../container/sequence/Stack.h"
-#include "../container/associative/Entry.h"
 
-template<typename T, typename Cmp = Greater<int>>
+#ifdef DEBUG
+
+#include <iostream>
+
+#endif
+
+template<typename T, typename Cmp = Greater<T>>
 class BTree;
 
-template<typename T, typename Cmp = Greater<int>>
+template<typename T, typename Cmp = Greater<T>>
 class BTreeNode;
 
-template<typename T, typename Cmp>
-using BTreeTraceElement = Entry<BTreeNode<T, Cmp> *, int>;
+/**
+ * 或指向某个node的child, 或指向某个node的data
+ */
+template<typename T, typename Cmp = Greater<T>>
+struct BTreeElement;
+
+
+template<typename T, typename Cmp = Greater<T>>
+using BTreeTrace = Stack<BTreeElement<T, Cmp>>;
 
 template<typename T, typename Cmp>
-using BTreeTrace = Stack<BTreeTraceElement<T, Cmp>>;
+struct BTreeElement {
+    BTreeNode<T, Cmp> *node;
+    /**
+     * minus for node->children[-index-1]
+     * else for node->data[index]
+     */
+    int index;
+
+    BTreeElement(BTreeNode<T, Cmp> *node, int index);
+
+    /**
+     * 当前元素的前驱push到stack里去, 当前元素不包含
+     * @param stack 栈顶指向当前节点
+     */
+    void pushPrevious(BTreeTrace<T, Cmp> &stack) const;
+
+    BTreeElement<T, Cmp> &operator=(const BTreeElement<T, Cmp> &src);
+
+    T *&data();
+
+    BTreeNode<T, Cmp> *&child() const;;
+
+    /**
+     * 整理, 一般是没用的, 因为由于之间的操作, index=node->size, 除非删除的就是叶子
+     */
+    void tidyLeaf();
+
+    /**
+     * this 作为 parent
+     * right 的最左放入 parent[parentIndex]
+     * parent[parentIndex] 放入 cur 的最右
+     */
+    void moveFromRightBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *right);
+
+    /**
+     * this 作为 parent
+     * left 的最右放入 parent[parentIndex]
+     * parent[parentIndex] 放入 cur 的最左
+     */
+    void moveFromLeftBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *left);
+
+
+    void combine(int level);
+};
 
 template<typename T, typename Cmp>
 class BTree {
@@ -44,15 +99,40 @@ public:
 
     void insert(const T &data);
 
+    // remove, 是删除一个, 还是删除多个? 依据trace去删除, 倒是可以
+    void remove(BTreeTrace<T, Cmp> &trace);
+
+    bool empty() {
+        return root->empty();
+    }
+
 #ifdef DEBUG
 
-    void showBTree() const;
+    /**
+     * @deprecated
+     */
+    double calRate() const;
+
+    void showBTree(std::ostream &os) const;
 
 #endif
+
+
 private:
     [[nodiscard]] BTreeNode<T, Cmp> *instanceNode() const;
 
+    /**
+     * @param trace 其index总是指向child_index
+     */
     void insert(const T &data, BTreeTrace<T, Cmp> &trace);
+
+
+    /**
+     * @param parent 为了防止对外界的改变, 因此采用复制
+     */
+    bool tryMoveFromBrother(BTreeNode<T, Cmp> *cur, BTreeElement<T, Cmp> parent, int lowerBound);
+
+    void removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *pNode);
 };
 
 template<typename T, typename Cmp>
@@ -66,6 +146,8 @@ private:
     BTreeNode<T, Cmp> **children;
 
     friend class BTree<T, Cmp>;
+
+    friend class BTreeElement<T, Cmp>;
 
     explicit BTreeNode(int level);
 
@@ -90,6 +172,8 @@ private:
 
     [[nodiscard]] bool empty() const;
 
+    [[nodiscard]] bool leaf() const;
+
     /**
      * @return 对data进行new拷贝构造
      */
@@ -112,21 +196,25 @@ private:
      */
     void split(T *&mid, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp> *right) const;
 
-
     T *resetData(int index, const T &value);
 
-public :
+    void removeFirst();
+
+    void insertFirst(T *data, BTreeNode<T, Cmp> *firstChild);
+
+public:
     [[nodiscard]] T *dataAt(int index) const;
 
 #ifdef DEBUG
 
-    void showBTree(int level) const;
+    void showBTree(int level, std::ostream &os) const;
 
 #endif
 };
 
+
+#include "impl/BTreeElement_impl.h"
 #include "impl/BTree_impl.h"
 #include "impl/BTreeNode_impl.h"
-
 
 #endif //ALGORITHM_B_TREE_DECLARE_H
