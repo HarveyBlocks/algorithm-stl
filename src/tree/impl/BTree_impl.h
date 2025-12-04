@@ -8,24 +8,23 @@
 #include "../BTree.h"
 
 template<typename T, typename Cmp>
-BTree<T, Cmp>::BTree(int level, Cmp cmp) :
-        level(level), cmp(std::move(cmp)) {
-    root = instanceNode();
+BTree<T, Cmp>::BTree(int level, const Cmp &cmp) :
+        level(level), cmp(std::move(cmp)), root(instanceNode()) {
 }
 
 template<typename T, typename Cmp>
 BTree<T, Cmp>::~BTree() {
     clear();
-    delete root;
+    root.release();
 }
 
 template<typename T, typename Cmp>
 void BTree<T, Cmp>::clear() {
     // 释放除了root以外所有资源
-    Stack<BTreeNode<T, Cmp> *> stack;
+    Stack<BTreeNodeReference<T, Cmp> > stack;
     stack.push(root);
     while (!stack.empty()) {
-        BTreeNode<T, Cmp> *node = stack.pop();
+        BTreeNodeReference<T, Cmp> node = stack.pop();
         if (node == nullptr) {
             continue;
         }
@@ -36,7 +35,12 @@ void BTree<T, Cmp>::clear() {
         if (node->filledCount() != 0) {
             stack.push(node->childAt(node->filledCount()));
         }
-        delete node;
+        for (int i = node->filledCount(); i < level - 1; ++i) {
+            if (node->dataAt(i) != nullptr || node->childAt(i + 1) != nullptr) {
+                std::cout<< "?" <<std::endl;
+            }
+        }
+        node.release();
     }
     root = instanceNode();
 }
@@ -44,7 +48,7 @@ void BTree<T, Cmp>::clear() {
 
 template<typename T, typename Cmp>
 BTreeTrace<T, Cmp> BTree<T, Cmp>::search(const T &value) const {
-    BTreeNode<T, Cmp> *cur = root;
+    BTreeNodeReference<T, Cmp> cur = root;
     BTreeTrace<T, Cmp> trace;
     while (cur != nullptr) {
         int index = cur->search(value, this);
@@ -61,8 +65,8 @@ BTreeTrace<T, Cmp> BTree<T, Cmp>::search(const T &value) const {
 }
 
 template<typename T, typename Cmp>
-BTreeNode<T, Cmp> *BTree<T, Cmp>::instanceNode() const {
-    return new BTreeNode<T, Cmp>(level);
+BTreeNodeReference<T, Cmp> BTree<T, Cmp>::instanceNode() const {
+    return BTreeNodeReference(new BTreeNode<T, Cmp>(level));
 }
 
 template<typename T, typename Cmp>
@@ -71,7 +75,7 @@ void BTree<T, Cmp>::insert(const T &data) {
     // 规定, 如果相等, 进入data左边
     // 也就是data<=node.data => node.data.left
     // 也就是node.data<=data => node.data.right
-    BTreeNode<T, Cmp> *cur = root;
+    BTreeNodeReference<T, Cmp> cur = root;
     BTreeTrace<T, Cmp> trace;
     Stack<int> indexTrace;
     while (cur != nullptr) {
@@ -149,7 +153,7 @@ bool BTree<T, Cmp>::empty() {
 }
 
 template<typename T, typename Cmp>
-void BTree<T, Cmp>::removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *cur) {
+void BTree<T, Cmp>::removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNodeReference<T, Cmp> cur) {
     int lowerBound = (level - 1) >> 1; // 4:1, 5:2, 6:2
     while (!trace.empty()) {
         // 4. 删除后叶子不小于下限(>=lowerBound), 直接删除
@@ -182,11 +186,39 @@ void BTree<T, Cmp>::removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *cur
     }
     // 需要更换root了
     root = cur->childAt(0);
-    cur->resetChild(0);
-    delete cur;
+    cur->setChild(0, BTreeNodeReference<T, Cmp>(nullptr));
+    cur.release();
 }
 
 #ifdef DEBUG
+
+#include <queue>
+
+template<typename T, typename Cmp>
+double BTree<T, Cmp>::calRate() const {
+    std::queue<BTreeNodeReference<T, Cmp>> que;
+    que.push(this->root);
+    unsigned long long used = 0;
+    unsigned long long nodeCnt = 0;
+    // (id,size,parent)
+    while (!que.empty()) {
+        BTreeNodeReference<T, Cmp> node = que.front();
+        que.pop();
+        if (node == nullptr) {
+            continue;
+        }
+        nodeCnt++;
+        for (int i = 0; i < level - 1; ++i) {
+            T *data = node->dataAt(i);
+            if (data != nullptr) {
+                used++;
+            }
+            que.push(node->childAt(i));
+        }
+        que.push(node->childAt(level - 1));
+    }
+    return double(used) * 1.0 / nodeCnt / (level - 1);
+}
 
 template<typename T, typename Cmp>
 void BTree<T, Cmp>::showBTree(std::ostream &os) const {

@@ -20,6 +20,7 @@ class BTree;
 template<typename T, typename Cmp = Greater<T>>
 class BTreeNode;
 
+
 /**
  * 或指向某个node的child, 或指向某个node的data
  */
@@ -30,25 +31,74 @@ struct BTreeElement;
 template<typename T, typename Cmp = Greater<T>>
 using BTreeTrace = Stack<BTreeElement<T, Cmp>>;
 
+
+template<typename T, typename Cmp = Greater<T>>
+class BTreeNodeReference {
+private:
+    BTreeNode<T, Cmp> *reference;
+public:
+
+    explicit BTreeNodeReference(const BTreeNode<T, Cmp> *reference = nullptr) :
+            reference(const_cast<BTreeNode<T, Cmp> *>(reference)) {}
+
+
+    void release() { // 完全代理reference的操作
+        delete reference;
+        reference = nullptr;
+    }
+
+    BTreeNode<T, Cmp> *operator->() const {
+        return reference;
+    }
+
+    BTreeNode<T, Cmp> &operator*() const {
+        return *reference;
+    }
+
+    bool operator==(std::nullptr_t n) const {
+        return this->reference == n;
+    }
+
+    bool operator!=(std::nullptr_t n) const {
+        return this->reference != n;
+    }
+
+    BTreeNodeReference &operator=(std::nullptr_t n) {
+        this->reference = n;
+        return *this;
+    };
+
+    BTreeNodeReference &operator=(const BTreeNodeReference &src) {
+        if (this != &src) {
+            this->reference = src.reference;
+        }
+        return *this;
+    };
+};
+
+template<typename T, typename Cmp = Greater<T>>
+using BTreeDataReference = T *;
+
 template<typename T, typename Cmp= Greater<T>>
 struct InsertGroup {
-    T *data;
-    BTreeNode<T, Cmp> *left;
-    BTreeNode<T, Cmp> *right;
+    BTreeDataReference<T> data;
+    BTreeNodeReference<T, Cmp> left;
+    BTreeNodeReference<T, Cmp> right;
 
-    explicit InsertGroup(T *data) : data(data), left(nullptr), right(nullptr) {}
+    explicit InsertGroup(BTreeDataReference<T> data) : data(data), left(nullptr),
+                                                       right(BTreeNodeReference<T, Cmp>(nullptr)) {}
 };
 
 template<typename T, typename Cmp>
 struct BTreeElement {
-    BTreeNode<T, Cmp> *node;
+    BTreeNodeReference<T, Cmp> node;
     /**
      * minus for node->children[-index-1]
      * else for node->data[index]
      */
     int index;
 
-    BTreeElement(BTreeNode<T, Cmp> *node, int index);
+    BTreeElement(BTreeNodeReference<T, Cmp> node, int index);
 
     /**
      * 当前元素的前驱push到stack里去, 当前元素不包含 <br>
@@ -58,9 +108,9 @@ struct BTreeElement {
 
     BTreeElement<T, Cmp> &operator=(const BTreeElement<T, Cmp> &src);
 
-    T *&data();
+    BTreeDataReference<T> &data();
 
-    BTreeNode<T, Cmp> *&child() const;;
+    BTreeNodeReference<T, Cmp> &child() const;;
 
     /**
      * 整理, 一般是没用的, 因为由于之间的操作, index=node->size, 除非删除的就是叶子 <br>
@@ -71,7 +121,7 @@ struct BTreeElement {
      * @param parent 为了防止对外界的改变, 因此采用复制, 此时parent.child()==cur <br>
      * @param lowerBound =(level-1)>>1 <br>
      */
-    bool tryMoveFromBrother(BTreeNode<T, Cmp> *cur, int lowerBound) const;
+    bool tryMoveFromBrother(BTreeNodeReference<T, Cmp> cur, int lowerBound) const;
 
 
     /**
@@ -79,14 +129,14 @@ struct BTreeElement {
      * right 的最左放入 parent[parentIndex] <br>
      * parent[parentIndex] 放入 cur 的最右 <br>
      */
-    void moveFromRightBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *right);
+    void moveFromRightBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> right);
 
     /**
      * this 作为 parent <br>
      * left 的最右放入 parent[parentIndex] <br>
      * parent[parentIndex] 放入 cur 的最左 <br>
      */
-    void moveFromLeftBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *left);
+    void moveFromLeftBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> left);
 
 
     void combine(int level);
@@ -112,7 +162,7 @@ struct BTreeElement {
      */
     void moveToRightBrother(
             BTreeElement<T, Cmp> cur,
-            BTreeNode<T, Cmp> *right,
+            BTreeNodeReference<T, Cmp> right,
             const InsertGroup<T, Cmp> &insertGroup);
 
     /**
@@ -124,7 +174,7 @@ struct BTreeElement {
      */
     void moveToLeftBrother(
             BTreeElement<T, Cmp> cur,
-            BTreeNode<T, Cmp> *left,
+            BTreeNodeReference<T, Cmp> left,
             const InsertGroup<T, Cmp> &insertGroup);
 
     void leftMoveInsert(const InsertGroup<T, Cmp> &insertGroup);
@@ -135,7 +185,7 @@ struct BTreeElement {
 template<typename T, typename Cmp>
 class BTree {
 private:
-    BTreeNode<T, Cmp> *root;
+    BTreeNodeReference<T, Cmp> root;
     // n 级 B 树...
     int level;
     Cmp cmp;
@@ -143,7 +193,7 @@ private:
     friend class BTreeNode<T, Cmp>;
 
 public:
-    explicit BTree(int level, Cmp cmp = Cmp());
+    explicit BTree(int level, const Cmp &cmp = Cmp());
 
     ~BTree();
 
@@ -172,7 +222,7 @@ public:
 
 
 private:
-    [[nodiscard]] BTreeNode<T, Cmp> *instanceNode() const;
+    [[nodiscard]] BTreeNodeReference<T, Cmp> instanceNode() const;
 
     /**
      * @param trace 其index总是指向child_index
@@ -180,7 +230,7 @@ private:
     void insertLeaf(const T &data, BTreeTrace<T, Cmp> &trace);
 
 
-    void removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *cur);
+    void removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNodeReference<T, Cmp> cur);
 };
 
 template<typename T, typename Cmp>
@@ -190,10 +240,8 @@ private:
     /**
      * 数组, 本节点上的, 长度及level有关
      */
-    T **datas;
-    BTreeNode<T, Cmp> **children;
-
-    // friend class BTree<T, Cmp>;
+    BTreeDataReference<T> *datas;
+    BTreeNodeReference<T, Cmp> *children;
 
     friend class BTreeElement<T, Cmp>;
 
@@ -205,8 +253,7 @@ private:
     /**
      * @return 对data进行new拷贝构造
      */
-    bool insert(int index, int level,
-                const InsertGroup<T, Cmp> &insertGroup);
+    bool insert(int index, int level, const InsertGroup<T, Cmp> &insertGroup);
 
     /**
      * @return 增加后转移到返回值, 自己清空
@@ -214,12 +261,12 @@ private:
     BTreeNode<T, Cmp> plus(int index, const InsertGroup<T, Cmp> &insertGroup) const;
 
 
-    T *resetData(int index, const T &value);
+    BTreeDataReference<T> resetData(int index, const T &value);
 
 
     void removeFirst();
 
-    void insertFirst(T *data, BTreeNode<T, Cmp> *firstChild);
+    void insertFirst(BTreeDataReference<T> data, const BTreeNodeReference<T, Cmp> &firstChild);
 
 public:
 
@@ -243,9 +290,13 @@ public:
      */
     int search(const T &value, const BTree<T, Cmp> *belong) const;
 
-    [[nodiscard]] T *dataAt(int index) const;
+    [[nodiscard]] BTreeDataReference<T> dataAt(int index) const;
 
-    [[nodiscard]] BTreeNode<T, Cmp> *childAt(int index) const;
+    [[nodiscard]] BTreeNodeReference<T, Cmp> childAt(int index) const;
+
+    BTreeDataReference<T> setData(int index, BTreeDataReference<T, Cmp> data);
+
+    BTreeNodeReference<T, Cmp> setChild(int index, const BTreeNodeReference<T, Cmp> &child);
 
     /**
      * @return 被填充的节点数量

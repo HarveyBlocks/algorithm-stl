@@ -26,7 +26,7 @@ void showDatas(const vector<int> &data, ostream &os) {
 
 int btreeDemoLoop() {
     int cnt = 1000;
-    ofstream os("../data.txt");
+    // ofstream os("../data.txt");
     while (cnt-- > 0) {
         size_t size = Random::unsignedInt() % 10000 + 50;
         vector<int> datas(size);
@@ -73,6 +73,7 @@ int bigDataBtreeDemo() {
     return 0;
 }
 
+
 int btreeDemo() {
     // 2 8 12 18 30 24 6 5 4 1 3
     IntBTree bTree(4);
@@ -95,8 +96,9 @@ int btreeDemo() {
 //  1. B*Tree, 插入时不分裂, 转移到兄弟, 兄弟也满了才分裂                    75%-85%
 // TODO
 //  2. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)
-//  3. 检测(How To Get?)到比较稀疏, 就触发合并
+//  3. 检测(How To Get?)到比较稀疏, 就触发合并什么的
 // 二. 序列化
-//  T* 要搞成T, 但是这样又...因为要转化...
+//  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
+//  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
 // 三. IO
 int BTreeTestDemoCode = /*btreeDemo() &&*/ btreeDemoLoop() | bigDataBtreeDemo();

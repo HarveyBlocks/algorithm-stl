@@ -9,7 +9,7 @@
 #include "../../util/Objects.h"
 
 template<typename T, typename Cmp>
-BTreeElement<T, Cmp>::BTreeElement(BTreeNode<T, Cmp> *node, int index) : node(node), index(index) {}
+BTreeElement<T, Cmp>::BTreeElement(BTreeNodeReference<T, Cmp> node, int index) : node(node), index(index) {}
 
 template<typename T, typename Cmp>
 void BTreeElement<T, Cmp>::pushPrevious(BTreeTrace<T, Cmp> &stack) const {
@@ -20,7 +20,7 @@ void BTreeElement<T, Cmp>::pushPrevious(BTreeTrace<T, Cmp> &stack) const {
     BTreeElement cur(node, -index - 1);
     while (!cur.node->leaf()) {
         stack.push(cur);
-        BTreeNode<T, Cmp> *child = cur.child();
+        BTreeNodeReference<T, Cmp> child = cur.child();
         cur = BTreeElement(child, -child->size - 1);
     }
     cur.index = -cur.index - 2;
@@ -44,7 +44,7 @@ T *&BTreeElement<T, Cmp>::data() {
 }
 
 template<typename T, typename Cmp>
-BTreeNode<T, Cmp> *&BTreeElement<T, Cmp>::child() const {
+BTreeNodeReference<T, Cmp> &BTreeElement<T, Cmp>::child() const {
     Objects::checkTrue(index < 0, "index not refer to child");
     return node->children[-index - 1];
 }
@@ -66,16 +66,16 @@ BTreeNode<T, Cmp> BTreeElement<T, Cmp>::plus(const InsertGroup<T, Cmp> &insertGr
 
 template<typename T, typename Cmp>
 void BTreeElement<T, Cmp>::insert(int level, const InsertGroup<T, Cmp> &insertGroup) {
-    node->insert(-index - 1, level, insertGroup);
+     node->insert(-index - 1, level, insertGroup);
 }
 
 template<typename T, typename Cmp>
-bool BTreeElement<T, Cmp>::tryMoveFromBrother(BTreeNode<T, Cmp> *cur, int lowerBound) const {
+bool BTreeElement<T, Cmp>::tryMoveFromBrother(BTreeNodeReference<T, Cmp> cur, int lowerBound) const {
     int rightData = -index - 1;// 指向偏右的data
     //  5.1.1 先检查是否存在右兄弟
     if (rightData < node->size) {
         // 存在右兄弟
-        BTreeNode<T, Cmp> *brother = node->childAt(rightData + 1);
+        BTreeNodeReference<T, Cmp> brother = node->childAt(rightData + 1);
         if (brother->size > lowerBound) {
             // 右兄弟合理
             //  5.1.2 选了右兄弟, 叶子被父偏右覆盖, 父偏右被右子最左覆盖, 删除父右子最左
@@ -87,7 +87,7 @@ bool BTreeElement<T, Cmp>::tryMoveFromBrother(BTreeNode<T, Cmp> *cur, int lowerB
     if (leftData >= node->size || leftData < 0) {
         return false;
     }
-    BTreeNode<T, Cmp> *brother = node->childAt(leftData);
+    BTreeNodeReference<T, Cmp> brother = node->childAt(leftData);
     if (brother->size > lowerBound) {
         // 5.1.1 选了左兄弟, 叶子被父偏左覆盖, 父偏左被左子最右覆盖, 删除父左子最右
         BTreeElement<T, Cmp>(node, leftData).moveFromLeftBrother(cur, brother);
@@ -98,7 +98,7 @@ bool BTreeElement<T, Cmp>::tryMoveFromBrother(BTreeNode<T, Cmp> *cur, int lowerB
 
 
 template<typename T, typename Cmp>
-void BTreeElement<T, Cmp>::moveFromRightBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *right) {
+void BTreeElement<T, Cmp>::moveFromRightBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> right) {
     T *parentData = this->data();
     // parent->cur.last
     cur->datas[cur->size] = parentData;
@@ -111,7 +111,7 @@ void BTreeElement<T, Cmp>::moveFromRightBrother(BTreeNode<T, Cmp> *cur, BTreeNod
 }
 
 template<typename T, typename Cmp>
-void BTreeElement<T, Cmp>::moveFromLeftBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *left) {
+void BTreeElement<T, Cmp>::moveFromLeftBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> left) {
     T *parentData = this->data();
     // parent->cur.first
     cur->insertFirst(parentData, left->childAt(left->size)/*left.children.last*/);
@@ -127,8 +127,8 @@ template<typename T, typename Cmp>
 void BTreeElement<T, Cmp>::combine(int level) {
     // (left|parent|right)->left
     T *data = this->data();
-    BTreeNode<T, Cmp> *left = this->node->children[this->index];
-    BTreeNode<T, Cmp> *right = this->node->children[this->index + 1];
+    BTreeNodeReference<T, Cmp> left = this->node->children[this->index];
+    BTreeNodeReference<T, Cmp> right = this->node->children[this->index + 1];
     int combineSize = left->size + 1 + right->size;
     Objects::requireTrue(combineSize < level, "can not combine for node is larger than upper bound after combine!");
     left->datas[left->size] = data;
@@ -140,7 +140,7 @@ void BTreeElement<T, Cmp>::combine(int level) {
     }
     left->children[left->size] = right->children[right->size];
     // delete node right
-    delete right;
+    right.release();
     // parent.datas[index+1:]->[index:]
     // parent.children[index+2:]->[index+1:]
     for (int i = index; i < node->size - 1; ++i) {
@@ -163,7 +163,7 @@ bool BTreeElement<T, Cmp>::tryMoveToBrother(
     //  5.1.1 先检查是否存在左兄弟
     if (leftData >= 0) {
         // 存在左兄弟
-        BTreeNode<T, Cmp> *brother = node->childAt(leftData);
+        BTreeNodeReference<T, Cmp> brother = node->childAt(leftData);
         if (brother->size < upperBound) {
             BTreeElement<T, Cmp>(node, leftData).moveToLeftBrother(cur, brother, insertGroup);
             return true;
@@ -173,7 +173,7 @@ bool BTreeElement<T, Cmp>::tryMoveToBrother(
     if (rightData < 0 || rightData >= node->size) {
         return false;
     }
-    BTreeNode<T, Cmp> *brother = node->childAt(rightData + 1);
+    BTreeNodeReference<T, Cmp> brother = node->childAt(rightData + 1);
     if (brother->size < upperBound) {
         // 5.1.1 选了左兄弟, 叶子被父偏左覆盖, 父偏左被左子最右覆盖, 删除父左子最右
         BTreeElement<T, Cmp>(node, rightData).moveToRightBrother(cur, brother, insertGroup);
@@ -183,12 +183,12 @@ bool BTreeElement<T, Cmp>::tryMoveToBrother(
 }
 
 template<typename T, typename Cmp>
-void BTreeElement<T, Cmp>::moveToLeftBrother(BTreeElement<T, Cmp> cur, BTreeNode<T, Cmp> *left,
+void BTreeElement<T, Cmp>::moveToLeftBrother(BTreeElement<T, Cmp> cur, BTreeNodeReference<T, Cmp> left,
                                              const InsertGroup<T, Cmp> &insertGroup) {
     // this 作为 parent
     T *newLeftLast = this->data(); // 左兄弟的最后
     T *newParentData;
-    BTreeNode<T, Cmp> *newLeftLastRight;
+    BTreeNodeReference<T, Cmp> newLeftLastRight;
     if (cur.index == -1) {
         // 最左, 不需要移动
         newParentData = insertGroup.data;
@@ -209,12 +209,12 @@ void BTreeElement<T, Cmp>::moveToLeftBrother(BTreeElement<T, Cmp> cur, BTreeNode
 }
 
 template<typename T, typename Cmp>
-void BTreeElement<T, Cmp>::moveToRightBrother(BTreeElement<T, Cmp> cur, BTreeNode<T, Cmp> *right,
+void BTreeElement<T, Cmp>::moveToRightBrother(BTreeElement<T, Cmp> cur, BTreeNodeReference<T, Cmp> right,
                                               const InsertGroup<T, Cmp> &insertGroup) {
     // this 作为 parent
     T *newRightFirst = this->data(); // 右兄弟的最前
     T *newParentData;
-    BTreeNode<T, Cmp> *newRightFirstLeft;
+    BTreeNodeReference<T, Cmp> newRightFirstLeft;
     if (cur.index == -cur.node->size - 1) {
         // 最右, 不需要移动
         newParentData = insertGroup.data;

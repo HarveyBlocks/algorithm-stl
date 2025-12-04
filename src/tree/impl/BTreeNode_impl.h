@@ -10,18 +10,16 @@
 
 template<typename T, typename Cmp>
 BTreeNode<T, Cmp>::BTreeNode(int level) :
-        datas(new T *[level - 1]), children(new BTreeNode<T, Cmp> *[level]), size(0) {
+        datas(new T *[level - 1]), children(new BTreeNodeReference<T, Cmp>[level]), size(0) {
     for (int i = 0; i < level - 1; ++i) {
         datas[i] = nullptr;
-        children[i] = nullptr;
     }
-    children[level - 1] = nullptr;
 }
 
 template<typename T, typename Cmp>
 BTreeNode<T, Cmp>::~BTreeNode() {
-    delete[] datas;
     delete[] children;
+    delete[] datas;
 }
 
 template<typename T, typename Cmp>
@@ -44,8 +42,23 @@ int BTreeNode<T, Cmp>::search(const T &value, const BTree<T, Cmp> *belong) const
 }
 
 template<typename T, typename Cmp>
-BTreeNode<T, Cmp> *BTreeNode<T, Cmp>::childAt(int index) const {
+BTreeNodeReference<T, Cmp> BTreeNode<T, Cmp>::childAt(int index) const {
     return children[index];
+}
+
+template<typename T, typename Cmp>
+BTreeNodeReference<T, Cmp> BTreeNode<T, Cmp>::setChild(int index,const BTreeNodeReference<T, Cmp>& child) {
+    BTreeNodeReference<T, Cmp> old = children[index];
+    children[index] = child;
+    return old;
+}
+
+
+template<typename T, typename Cmp>
+T *BTreeNode<T, Cmp>::setData(int index, T *data) {
+    T *old = datas[index];
+    datas[index] = data;
+    return old;
 }
 
 template<typename T, typename Cmp>
@@ -150,7 +163,7 @@ T *BTreeNode<T, Cmp>::dataAt(int index) const {
 }
 
 template<typename T, typename Cmp>
-void BTreeNode<T, Cmp>::insertFirst(T *data, BTreeNode<T, Cmp> *firstChild) {
+void BTreeNode<T, Cmp>::insertFirst(T *data, const BTreeNodeReference<T, Cmp>& firstChild) {
     for (int i = size; i > 0; --i) {
         datas[i] = datas[i - 1];
         children[i + 1] = children[i];
@@ -186,42 +199,17 @@ int BTreeNode<T, Cmp>::filledCount() {
 #include <queue>
 
 template<typename T, typename Cmp>
-double BTree<T, Cmp>::calRate() const {
-    std::queue<const BTreeNode<T, Cmp> *> que;
-    que.push(this->root);
-    unsigned long long used = 0;
-    unsigned long long nodeCnt = 0;
-    // (id,size,parent)
-    while (!que.empty()) {
-        const BTreeNode<T, Cmp> *node = que.front();
-        que.pop();
-        if (node == nullptr) {
-            continue;
-        }
-        nodeCnt++;
-        for (int i = 0; i < level - 1; ++i) {
-            T *data = node->dataAt(i);
-            if (data != nullptr) {
-                used++;
-            }
-            que.push(node->childAt(i));
-        }
-        que.push(node->childAt(level - 1));
-    }
-    return double(used) * 1.0 / nodeCnt / (level - 1);
-}
-
-template<typename T, typename Cmp>
 void BTreeNode<T, Cmp>::showBTree(int level, std::ostream &os) const {
-    std::queue<std::pair<const BTreeNode<T, Cmp> *, std::pair<int, std::pair<int, int>>>> que;
+    std::queue<std::pair<BTreeNodeReference<T, Cmp>, std::pair<int, std::pair<int, int>>>> que;
     int depth = 0;
     int cnt = 0;
-    que.emplace(this, std::pair<int, std::pair<int, int>>{depth, std::pair<int, int>{cnt++, -1}});
+    que.emplace(BTreeNodeReference<T, Cmp>(this),
+                std::pair<int, std::pair<int, int>>{depth, std::pair<int, int>{cnt++, -1}});
     // [id,size,parent]
     while (!que.empty()) {
-        std::pair<const BTreeNode<T, Cmp> *, std::pair<int, std::pair<int, int>>> front = que.front();
+        std::pair<BTreeNodeReference<T, Cmp>, std::pair<int, std::pair<int, int>>> front = que.front();
         que.pop();
-        const BTreeNode<T, Cmp> *node = front.first;
+        BTreeNodeReference<T, Cmp> node = front.first;
         int nowDepth = front.second.first;
         int id = front.second.second.first;
         int parentId = front.second.second.second;
@@ -252,7 +240,6 @@ void BTreeNode<T, Cmp>::showBTree(int level, std::ostream &os) const {
     }
     os << std::endl;
 }
-
 #endif
 
 #endif //ALGORITHM_BTREE_NODE_H
