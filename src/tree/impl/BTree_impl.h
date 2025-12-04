@@ -9,7 +9,8 @@
 
 template<typename T, typename Cmp>
 BTree<T, Cmp>::BTree(int level, const Cmp &cmp) :
-        level(level), cmp(std::move(cmp)), root(instanceNode()) {
+        level(level), cmp(std::move(cmp)) {
+            root = instanceNode();
 }
 
 template<typename T, typename Cmp>
