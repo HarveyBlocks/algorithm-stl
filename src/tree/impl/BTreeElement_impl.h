@@ -59,6 +59,43 @@ void BTreeElement<T, Cmp>::tidyLeaf() {
     node->datas[node->size] = nullptr;
 }
 
+template<typename T, typename Cmp>
+BTreeNode<T, Cmp> BTreeElement<T, Cmp>::plus(const InsertGroup<T, Cmp> &insertGroup) {
+    return node->plus(-index - 1, insertGroup);
+}
+
+template<typename T, typename Cmp>
+void BTreeElement<T, Cmp>::insert(int level, const InsertGroup<T, Cmp> &insertGroup) {
+    node->insert(-index - 1, level, insertGroup);
+}
+
+template<typename T, typename Cmp>
+bool BTreeElement<T, Cmp>::tryMoveFromBrother(BTreeNode<T, Cmp> *cur, int lowerBound) const {
+    int rightData = -index - 1;// 指向偏右的data
+    //  5.1.1 先检查是否存在右兄弟
+    if (rightData < node->size) {
+        // 存在右兄弟
+        BTreeNode<T, Cmp> *brother = node->childAt(rightData + 1);
+        if (brother->size > lowerBound) {
+            // 右兄弟合理
+            //  5.1.2 选了右兄弟, 叶子被父偏右覆盖, 父偏右被右子最左覆盖, 删除父右子最左
+            BTreeElement<T, Cmp>(node, rightData).moveFromRightBrother(cur, brother);
+            return true;
+        }
+    }
+    int leftData = rightData - 1;
+    if (leftData >= node->size || leftData < 0) {
+        return false;
+    }
+    BTreeNode<T, Cmp> *brother = node->childAt(leftData);
+    if (brother->size > lowerBound) {
+        // 5.1.1 选了左兄弟, 叶子被父偏左覆盖, 父偏左被左子最右覆盖, 删除父左子最右
+        BTreeElement<T, Cmp>(node, leftData).moveFromLeftBrother(cur, brother);
+        return true;
+    }
+    return false;
+}
+
 
 template<typename T, typename Cmp>
 void BTreeElement<T, Cmp>::moveFromRightBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *right) {
@@ -117,5 +154,106 @@ void BTreeElement<T, Cmp>::combine(int level) {
     node->datas[node->size] = nullptr;
 }
 
+
+template<typename T, typename Cmp>
+bool BTreeElement<T, Cmp>::tryMoveToBrother(
+        const BTreeElement<T, Cmp> &cur, int upperBound,
+        const InsertGroup<T, Cmp> &insertGroup) const {
+    int leftData = -index - 2;// 指向偏左的data
+    //  5.1.1 先检查是否存在左兄弟
+    if (leftData >= 0) {
+        // 存在左兄弟
+        BTreeNode<T, Cmp> *brother = node->childAt(leftData);
+        if (brother->size < upperBound) {
+            BTreeElement<T, Cmp>(node, leftData).moveToLeftBrother(cur, brother, insertGroup);
+            return true;
+        }
+    }
+    int rightData = leftData + 1;
+    if (rightData < 0 || rightData >= node->size) {
+        return false;
+    }
+    BTreeNode<T, Cmp> *brother = node->childAt(rightData + 1);
+    if (brother->size < upperBound) {
+        // 5.1.1 选了左兄弟, 叶子被父偏左覆盖, 父偏左被左子最右覆盖, 删除父左子最右
+        BTreeElement<T, Cmp>(node, rightData).moveToRightBrother(cur, brother, insertGroup);
+        return true;
+    }
+    return false;
+}
+
+template<typename T, typename Cmp>
+void BTreeElement<T, Cmp>::moveToLeftBrother(BTreeElement<T, Cmp> cur, BTreeNode<T, Cmp> *left,
+                                             const InsertGroup<T, Cmp> &insertGroup) {
+    // this 作为 parent
+    T *newLeftLast = this->data(); // 左兄弟的最后
+    T *newParentData;
+    BTreeNode<T, Cmp> *newLeftLastRight;
+    if (cur.index == -1) {
+        // 最左, 不需要移动
+        newParentData = insertGroup.data;
+        newLeftLastRight = insertGroup.left;
+        cur.child() = insertGroup.right;
+    } else {
+        // data 放入 cur, 同时左溢出
+        newParentData = cur.node->dataAt(0);
+        newLeftLastRight = cur.node->childAt(0);// 将成为左兄弟最后的child, 等待插入
+        cur.leftMoveInsert(insertGroup); // 参考insert, 可以覆盖掉一个child, insertGroup.left->cur.child()
+    }
+    // cur 的左溢出放入 parent[parentIndex]
+    this->data() = newParentData;
+    // parent[parentIndex] 放入 left 的最右
+    left->datas[left->size] = newLeftLast;
+    left->size++;
+    left->children[left->size] = newLeftLastRight;
+}
+
+template<typename T, typename Cmp>
+void BTreeElement<T, Cmp>::moveToRightBrother(BTreeElement<T, Cmp> cur, BTreeNode<T, Cmp> *right,
+                                              const InsertGroup<T, Cmp> &insertGroup) {
+    // this 作为 parent
+    T *newRightFirst = this->data(); // 右兄弟的最前
+    T *newParentData;
+    BTreeNode<T, Cmp> *newRightFirstLeft;
+    if (cur.index == -cur.node->size - 1) {
+        // 最右, 不需要移动
+        newParentData = insertGroup.data;
+        cur.child() = insertGroup.left;
+        newRightFirstLeft = insertGroup.right;
+    } else {
+        // data 放入 cur, 同时右溢出
+        newParentData = cur.node->dataAt(cur.node->size - 1);
+        newRightFirstLeft = cur.node->childAt(cur.node->size);// 将成为右兄弟第一个的child, 等待插入
+        cur.rightMoveInsert(insertGroup); // 参考insert, 可以覆盖掉一个child, insertGroup.left->cur.child()
+    }
+    // cur 的右溢出放入 parent[parentIndex]
+    this->data() = newParentData;
+    // parent[parentIndex] 放入 right 的最左
+    right->insertFirst(newRightFirst, newRightFirstLeft);
+}
+
+template<typename T, typename Cmp>
+void BTreeElement<T, Cmp>::leftMoveInsert(const InsertGroup<T, Cmp> &insertGroup) {
+    int dataIndex = -index - 1 - 1; // 再减一表示偏左, 按照规范是偏右的
+    for (int i = 0; i < dataIndex; ++i) {
+        node->datas[i] = node->datas[i + 1];
+        node->children[i] = node->children[i + 1]; // 此时
+    }
+    node->datas[dataIndex] = insertGroup.data;
+    node->children[dataIndex] = insertGroup.left;
+    node->children[dataIndex + 1] = insertGroup.right;
+}
+
+template<typename T, typename Cmp>
+void BTreeElement<T, Cmp>::rightMoveInsert(const InsertGroup<T, Cmp> &insertGroup) {
+    int dataIndex = -index - 1; // 按照规范是偏右的
+    for (int i = node->size - 1; i > dataIndex; --i) {
+        node->datas[i] = node->datas[i - 1];
+        node->children[i + 1] = node->children[i]; // 此时
+    }
+    node->datas[dataIndex] = insertGroup.data;
+    node->children[dataIndex] = insertGroup.left;
+    node->children[dataIndex + 1] = insertGroup.right;
+}
 
 #endif //ALGORITHM_BTREE_ELEMENT_IMPL_H

@@ -30,6 +30,15 @@ struct BTreeElement;
 template<typename T, typename Cmp = Greater<T>>
 using BTreeTrace = Stack<BTreeElement<T, Cmp>>;
 
+template<typename T, typename Cmp= Greater<T>>
+struct InsertGroup {
+    T *data;
+    BTreeNode<T, Cmp> *left;
+    BTreeNode<T, Cmp> *right;
+
+    explicit InsertGroup(T *data) : data(data), left(nullptr), right(nullptr) {}
+};
+
 template<typename T, typename Cmp>
 struct BTreeElement {
     BTreeNode<T, Cmp> *node;
@@ -42,8 +51,8 @@ struct BTreeElement {
     BTreeElement(BTreeNode<T, Cmp> *node, int index);
 
     /**
-     * 当前元素的前驱push到stack里去, 当前元素不包含
-     * @param stack 栈顶指向当前节点
+     * 当前元素的前驱push到stack里去, 当前元素不包含 <br>
+     * @param stack 栈顶指向当前节点 <br>
      */
     void pushPrevious(BTreeTrace<T, Cmp> &stack) const;
 
@@ -54,26 +63,73 @@ struct BTreeElement {
     BTreeNode<T, Cmp> *&child() const;;
 
     /**
-     * 整理, 一般是没用的, 因为由于之间的操作, index=node->size, 除非删除的就是叶子
+     * 整理, 一般是没用的, 因为由于之间的操作, index=node->size, 除非删除的就是叶子 <br>
      */
     void tidyLeaf();
 
     /**
-     * this 作为 parent
-     * right 的最左放入 parent[parentIndex]
-     * parent[parentIndex] 放入 cur 的最右
+     * @param parent 为了防止对外界的改变, 因此采用复制, 此时parent.child()==cur <br>
+     * @param lowerBound =(level-1)>>1 <br>
+     */
+    bool tryMoveFromBrother(BTreeNode<T, Cmp> *cur, int lowerBound) const;
+
+
+    /**
+     * this 作为 parent <br>
+     * right 的最左放入 parent[parentIndex] <br>
+     * parent[parentIndex] 放入 cur 的最右 <br>
      */
     void moveFromRightBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *right);
 
     /**
-     * this 作为 parent
-     * left 的最右放入 parent[parentIndex]
-     * parent[parentIndex] 放入 cur 的最左
+     * this 作为 parent <br>
+     * left 的最右放入 parent[parentIndex] <br>
+     * parent[parentIndex] 放入 cur 的最左 <br>
      */
     void moveFromLeftBrother(BTreeNode<T, Cmp> *cur, BTreeNode<T, Cmp> *left);
 
 
     void combine(int level);
+
+    void insert(int level, const InsertGroup<T, Cmp> &insertGroup);
+
+    BTreeNode<T, Cmp> plus(const InsertGroup<T, Cmp> &insertGroup);
+
+    /**
+     * @param cur 为了防止对外界的改变, 因此采用复制, 此时this->child()==cur, cur->insert<br>
+     * @param bound (level-1)>>1 for lower and level-1 for !lower <br>
+     */
+    bool tryMoveToBrother(
+            const BTreeElement<T, Cmp> &cur, int upperBound,
+            const InsertGroup<T, Cmp> &insertGroup) const;
+
+    /**
+     * this 作为 parent, 且指向data <br>
+     * data 放入 cur, 同时右溢出 <br>
+     * cur 的右溢出放入 parent[parentIndex] <br>
+     * parent[parentIndex] 放入 right 的最左 <br>
+     * @param cur拷贝一份
+     */
+    void moveToRightBrother(
+            BTreeElement<T, Cmp> cur,
+            BTreeNode<T, Cmp> *right,
+            const InsertGroup<T, Cmp> &insertGroup);
+
+    /**
+     * this 作为 parent, 且指向data <br>
+     * data 放入 cur, 同时左溢出 <br>
+     * cur 的左溢出放入 parent[parentIndex] <br>
+     * parent[parentIndex] 放入 left 的最右 <br>
+     * @param cur拷贝一份
+     */
+    void moveToLeftBrother(
+            BTreeElement<T, Cmp> cur,
+            BTreeNode<T, Cmp> *left,
+            const InsertGroup<T, Cmp> &insertGroup);
+
+    void leftMoveInsert(const InsertGroup<T, Cmp> &insertGroup);
+
+    void rightMoveInsert(const InsertGroup<T, Cmp> &insertGroup);
 };
 
 template<typename T, typename Cmp>
@@ -93,7 +149,6 @@ public:
 
     void clear();
 
-    void clear(BTreeNode<T, Cmp> *node);
 
     [[nodiscard]] BTreeTrace<T, Cmp> search(const T &value) const;
 
@@ -102,9 +157,7 @@ public:
     // remove, 是删除一个, 还是删除多个? 依据trace去删除, 倒是可以
     void remove(BTreeTrace<T, Cmp> &trace);
 
-    bool empty() {
-        return root->empty();
-    }
+    bool empty();
 
 #ifdef DEBUG
 
@@ -113,7 +166,7 @@ public:
      */
     double calRate() const;
 
-    void showBTree(std::ostream &os) const;
+    void showBTree(std::ostream &os = std::cout) const;
 
 #endif
 
@@ -124,15 +177,10 @@ private:
     /**
      * @param trace 其index总是指向child_index
      */
-    void insert(const T &data, BTreeTrace<T, Cmp> &trace);
+    void insertLeaf(const T &data, BTreeTrace<T, Cmp> &trace);
 
 
-    /**
-     * @param parent 为了防止对外界的改变, 因此采用复制
-     */
-    bool tryMoveFromBrother(BTreeNode<T, Cmp> *cur, BTreeElement<T, Cmp> parent, int lowerBound);
-
-    void removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *pNode);
+    void removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *cur);
 };
 
 template<typename T, typename Cmp>
@@ -145,13 +193,42 @@ private:
     T **datas;
     BTreeNode<T, Cmp> **children;
 
-    friend class BTree<T, Cmp>;
+    // friend class BTree<T, Cmp>;
 
     friend class BTreeElement<T, Cmp>;
+
+
+    [[nodiscard]] bool empty() const;
+
+    [[nodiscard]] bool leaf() const;
+
+    /**
+     * @return 对data进行new拷贝构造
+     */
+    bool insert(int index, int level,
+                const InsertGroup<T, Cmp> &insertGroup);
+
+    /**
+     * @return 增加后转移到返回值, 自己清空
+     */
+    BTreeNode<T, Cmp> plus(int index, const InsertGroup<T, Cmp> &insertGroup) const;
+
+
+    T *resetData(int index, const T &value);
+
+
+    void removeFirst();
+
+    void insertFirst(T *data, BTreeNode<T, Cmp> *firstChild);
+
+public:
 
     explicit BTreeNode(int level);
 
     ~BTreeNode();
+
+
+    [[nodiscard]] bool full(int level) const;
 
     /**
      * @param value target
@@ -166,48 +243,28 @@ private:
      */
     int search(const T &value, const BTree<T, Cmp> *belong) const;
 
+    [[nodiscard]] T *dataAt(int index) const;
+
     [[nodiscard]] BTreeNode<T, Cmp> *childAt(int index) const;
 
-    [[nodiscard]] bool full(int level) const;
-
-    [[nodiscard]] bool empty() const;
-
-    [[nodiscard]] bool leaf() const;
-
     /**
-     * @return 对data进行new拷贝构造
+     * @return 被填充的节点数量
      */
-    bool insert(int index, T *data, int level,
-                BTreeNode<T, Cmp> *left,
-                BTreeNode<T, Cmp> *right);
-
-    /**
-     * @return 增加后转移到返回值, 自己清空
-     */
-    BTreeNode<T, Cmp> plus(int index, T *data,
-                           BTreeNode<T, Cmp> *left,
-                           BTreeNode<T, Cmp> *right) const;
+    inline int filledCount();
 
     void reset();
+
+    void resetChild(int index);
 
     /**
      * 本节点是full后的temp
      * @return 返回防裂后的right
      */
-    void split(T *&mid, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp> *right) const;
-
-    T *resetData(int index, const T &value);
-
-    void removeFirst();
-
-    void insertFirst(T *data, BTreeNode<T, Cmp> *firstChild);
-
-public:
-    [[nodiscard]] T *dataAt(int index) const;
+    void split(InsertGroup<T, Cmp> &insertGroup) const;
 
 #ifdef DEBUG
 
-    void showBTree(int level, std::ostream &os) const;
+    void showBTree(int level, std::ostream &os = std::cout) const;
 
 #endif
 };

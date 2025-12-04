@@ -29,32 +29,18 @@ void BTree<T, Cmp>::clear() {
         if (node == nullptr) {
             continue;
         }
-        for (int i = 0; i < node->size; ++i) {
-            delete node->datas[i];
-            stack.push(node->children[i]);
+        for (int i = 0; i < node->filledCount(); ++i) {
+            delete node->dataAt(i);
+            stack.push(node->childAt(i));
         }
-        if (node->size != 0) {
-            stack.push(node->children[node->size]);
+        if (node->filledCount() != 0) {
+            stack.push(node->childAt(node->filledCount()));
         }
         delete node;
     }
     root = instanceNode();
 }
 
-template<typename T, typename Cmp>
-void BTree<T, Cmp>::clear(BTreeNode<T, Cmp> *node) {
-    // 删除root的所有子元素, 然后删除root
-    if (node == nullptr) return;
-    for (int i = 0; i < node->size; ++i) {
-        clear(node->children[i]);
-        delete node->children[i];
-        delete node->datas[i];
-        node->children[i] = nullptr;
-    }
-    clear(node->children[node->size]);
-    delete node->children[node->size];
-    node->children[node->size] = nullptr;
-}
 
 template<typename T, typename Cmp>
 BTreeTrace<T, Cmp> BTree<T, Cmp>::search(const T &value) const {
@@ -75,6 +61,11 @@ BTreeTrace<T, Cmp> BTree<T, Cmp>::search(const T &value) const {
 }
 
 template<typename T, typename Cmp>
+BTreeNode<T, Cmp> *BTree<T, Cmp>::instanceNode() const {
+    return new BTreeNode<T, Cmp>(level);
+}
+
+template<typename T, typename Cmp>
 void BTree<T, Cmp>::insert(const T &data) {
     // 1. search到leaf, 构建trace
     // 规定, 如果相等, 进入data左边
@@ -89,71 +80,41 @@ void BTree<T, Cmp>::insert(const T &data) {
         trace.push(BTreeElement<T, Cmp>(cur, -childIndex - 1));
         cur = cur->childAt(childIndex);
     }
-    insert(data, trace);
-}
-
-template<typename T, typename Cmp>
-BTreeNode<T, Cmp> *BTree<T, Cmp>::instanceNode() const {
-    return new BTreeNode<T, Cmp>(level);
+    insertLeaf(data, trace);
 }
 
 
 template<typename T, typename Cmp>
-void BTree<T, Cmp>::insert(const T &data, BTreeTrace<T, Cmp> &trace) {
-    BTreeNode<T, Cmp> *left = nullptr;
-    BTreeNode<T, Cmp> *right = nullptr;
-    T *ref = new T(data);
+void BTree<T, Cmp>::insertLeaf(const T &data, BTreeTrace<T, Cmp> &trace) {
+    InsertGroup insertGroup(new T(data));
+    int upperBound = level - 1;
     while (!trace.empty()) {
-        const BTreeElement<T, Cmp> &top = trace.pop();
-        BTreeNode<T, Cmp> *node = top.node;
-        int index = -top.index - 1; // 总是child_index
+        BTreeElement<T, Cmp> top = trace.pop();
         // 2. 如果节点未满, 插入节点
-        if (!node->full(level)) {
-            node->insert(index, ref, this->level, left, right);
+        if (!top.node->full(level)) {
+            top.insert(this->level, insertGroup);
             return;
         }
-        // 3. 如果节点满了
-        // 3.1. 分裂
-        const BTreeNode<T, Cmp> &tempNode = node->plus(index, ref, left, right);
-        node->reset();
-        left = node, right = instanceNode();
-        tempNode.split(ref, left, right);
-        //  3.2. 指针指向上面的节点, 返回3
+        // 4. 如果节点满了
+        if (!trace.empty()) {
+            // 4.1. 转移到兄弟
+            const BTreeElement<T, Cmp> &parent = trace.top();// 搞一个拷贝, 不要修改了trace了
+            if (parent.tryMoveToBrother(top, upperBound, insertGroup)) {
+                return;
+            }
+        }
+        // 4.2. 分裂
+        const BTreeNode<T, Cmp> &tempNode = top.plus(insertGroup);
+        top.node->reset();
+        insertGroup.left = top.node, insertGroup.right = instanceNode();
+        tempNode.split(insertGroup);
+        //  5.2. 指针指向上面的节点, 返回2
     }
     // 新root
     root = instanceNode();
-    root->insert(0, ref, this->level, left, right);
+    BTreeElement<T, Cmp>(root, -1/*children[0]*/).insert(this->level, insertGroup);
 }
 
-template<typename T, typename Cmp>
-bool BTree<T, Cmp>::tryMoveFromBrother(
-        BTreeNode<T, Cmp> *cur, BTreeElement<T, Cmp> parent, int lowerBound) {
-    //  5.1.1 先检查是否存在右兄弟
-    if (parent.index > parent.node->size) {
-        return false;
-    }
-    if (parent.index < parent.node->size) {
-        // 存在右兄弟
-        BTreeNode<T, Cmp> *brother = parent.node->childAt(parent.index + 1);
-        if (brother->size > lowerBound) {
-            // 右兄弟合理
-            //  5.1.2 选了右兄弟, 叶子被父偏右覆盖, 父偏右被右子最左覆盖, 删除父右子最左
-            parent.moveFromRightBrother(cur, brother);
-            return true;
-        }
-    }
-    if (parent.index <= 0) {
-        return false;
-    }
-    BTreeNode<T, Cmp> *brother = parent.node->childAt(parent.index - 1);
-    if (brother->size <= lowerBound) {
-        return false;
-    }
-    parent.index--;// 左移, 指向偏左的data
-    // 5.1.1 选了左兄弟, 叶子被父偏左覆盖, 父偏左被左子最右覆盖, 删除父左子最右
-    parent.moveFromLeftBrother(cur, brother);
-    return true;
-}
 
 template<typename T, typename Cmp>
 void BTree<T, Cmp>::remove(BTreeTrace<T, Cmp> &trace) {
@@ -183,24 +144,29 @@ void BTree<T, Cmp>::remove(BTreeTrace<T, Cmp> &trace) {
 }
 
 template<typename T, typename Cmp>
+bool BTree<T, Cmp>::empty() {
+    return root->empty();
+}
+
+template<typename T, typename Cmp>
 void BTree<T, Cmp>::removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *cur) {
     int lowerBound = (level - 1) >> 1; // 4:1, 5:2, 6:2
     while (!trace.empty()) {
         // 4. 删除后叶子不小于下限(>=lowerBound), 直接删除
-        if (cur->size >= lowerBound) {
+        if (cur->filledCount() >= lowerBound) {
             //  5.3 检查父亲是否小于下限, 是, 则回到4
             return;
         }
         // 5. 删除叶子小于下限(<lowerBound)
         // 5.1 存在至少一个兄弟, 去掉一个后依旧满足下限
         BTreeElement<T, Cmp> parent = trace.pop();
-        parent.index = -parent.index - 1; // 指向child偏右的data
-        if (tryMoveFromBrother(cur, parent, lowerBound)) {
+        if (parent.tryMoveFromBrother(cur, lowerBound)) { // const, 不发生改变
             return;
         }
         // 没有合适的兄弟
+        parent.index = -parent.index - 1; // 指向child偏右的data
         // 5.2 兄弟都恰好在下限, 选择右兄弟(尽可能, 如果自己就是最右则另当别论)
-        if (parent.index == parent.node->size) {
+        if (parent.index == parent.node->filledCount()) {
             // 最右边, 则选择左兄弟, cur is last
             parent.index--;
         }
@@ -211,14 +177,15 @@ void BTree<T, Cmp>::removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNode<T, Cmp> *cur
     }
     // 此时cur就是root
     // 6. 如果root被合并到下方节点, 则更换root
-    if (cur->size > 0) {
+    if (cur->filledCount() > 0) {
         return;// 根节点允许小于lowerBound
     }
     // 需要更换root了
-    root = cur->children[0];
-    cur->children[0] = nullptr;
+    root = cur->childAt(0);
+    cur->resetChild(0);
     delete cur;
 }
+
 #ifdef DEBUG
 
 template<typename T, typename Cmp>

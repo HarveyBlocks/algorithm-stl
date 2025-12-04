@@ -49,6 +49,11 @@ BTreeNode<T, Cmp> *BTreeNode<T, Cmp>::childAt(int index) const {
 }
 
 template<typename T, typename Cmp>
+void BTreeNode<T, Cmp>::resetChild(int index) {
+    children[index] = nullptr;
+}
+
+template<typename T, typename Cmp>
 bool BTreeNode<T, Cmp>::full(int level) const {
     return level - 1 == size;
 }
@@ -64,30 +69,30 @@ bool BTreeNode<T, Cmp>::leaf() const {
 }
 
 template<typename T, typename Cmp>
-bool BTreeNode<T, Cmp>::insert(int index, T *data, int level, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp> *right) {
+bool BTreeNode<T, Cmp>::insert(int index, int level, const InsertGroup<T, Cmp> &insertGroup) {
     Objects::requireTrue(index <= size, "can not insert after node dataSize");
     Objects::checkTrue(size < level - 1, "tree node is full");
     for (int i = size; i > index; --i) {
         datas[i] = datas[i - 1];
         children[i + 1] = children[i];
     }
-    datas[index] = data;
+    datas[index] = insertGroup.data;
     size++;
-    children[index] = left;
-    children[index + 1] = right;
+    children[index] = insertGroup.left;
+    children[index + 1] = insertGroup.right;
     return level - 1 == size;
 }
 
 template<typename T, typename Cmp>
-BTreeNode<T, Cmp> BTreeNode<T, Cmp>::plus(int index, T *data, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp> *right) const {
+BTreeNode<T, Cmp> BTreeNode<T, Cmp>::plus(int index, const InsertGroup<T, Cmp> &insertGroup) const {
     Objects::requireTrue(index <= size, "can not insert after node dataSize");
     int level = size + 1;
     BTreeNode<T, Cmp> target(level + 1);
     for (int i = 0, j = 0, k = 0; i < size + 1; ++i) {
         if (i == index) {
-            target.datas[i] = data;
-            target.children[k++] = left;
-            target.children[k++] = right;
+            target.datas[i] = insertGroup.data;
+            target.children[k++] = insertGroup.left;
+            target.children[k++] = insertGroup.right;
         } else {
             target.datas[i] = datas[j++];
             target.children[k++] = children[i];
@@ -108,26 +113,26 @@ void BTreeNode<T, Cmp>::reset() {
 }
 
 template<typename T, typename Cmp>
-void BTreeNode<T, Cmp>::split(T *&mid, BTreeNode<T, Cmp> *left, BTreeNode<T, Cmp> *right) const {
+void BTreeNode<T, Cmp>::split(InsertGroup<T, Cmp> &insertGroup) const {
     int level = size;
     // 1. 的值移动到上面的节点 4->1, 5->2, 6->2
     int midIndex = (level - 1) >> 1;
     // 2. update left
     for (int i = 0; i < midIndex; ++i) {
-        left->datas[i] = datas[i];
-        left->children[i] = children[i];
+        insertGroup.left->datas[i] = datas[i];
+        insertGroup.left->children[i] = children[i];
     }
-    left->size = midIndex;
-    left->children[left->size] = this->children[left->size];
+    insertGroup.left->size = midIndex;
+    insertGroup.left->children[insertGroup.left->size] = this->children[insertGroup.left->size];
     // 3. update data = top->at(index = level>>1);
-    mid = datas[midIndex];
+    insertGroup.data = datas[midIndex];
     // 4. update right
     for (int i = midIndex + 1, j = 0; i < level; ++i, ++j) {
-        right->datas[j] = datas[i];
-        right->children[j] = children[i];
+        insertGroup.right->datas[j] = datas[i];
+        insertGroup.right->children[j] = children[i];
     }
-    right->size = level - midIndex - 1;
-    right->children[right->size] = this->children[level];
+    insertGroup.right->size = level - midIndex - 1;
+    insertGroup.right->children[insertGroup.right->size] = this->children[level];
 }
 
 
@@ -169,6 +174,13 @@ void BTreeNode<T, Cmp>::removeFirst() {
     size--;
     datas[size] = nullptr;
 }
+
+
+template<typename T, typename Cmp>
+int BTreeNode<T, Cmp>::filledCount() {
+    return size;
+}
+
 #ifdef DEBUG
 
 #include <queue>
@@ -188,13 +200,13 @@ double BTree<T, Cmp>::calRate() const {
         }
         nodeCnt++;
         for (int i = 0; i < level - 1; ++i) {
-            T *data = node->datas[i];
+            T *data = node->dataAt(i);
             if (data != nullptr) {
                 used++;
             }
-            que.push(node->children[i]);
+            que.push(node->childAt(i));
         }
-        que.push(node->children[level - 1]);
+        que.push(node->childAt(level - 1));
     }
     return double(used) * 1.0 / nodeCnt / (level - 1);
 }
@@ -205,7 +217,7 @@ void BTreeNode<T, Cmp>::showBTree(int level, std::ostream &os) const {
     int depth = 0;
     int cnt = 0;
     que.emplace(this, std::pair<int, std::pair<int, int>>{depth, std::pair<int, int>{cnt++, -1}});
-    // (id,size,parent)
+    // [id,size,parent]
     while (!que.empty()) {
         std::pair<const BTreeNode<T, Cmp> *, std::pair<int, std::pair<int, int>>> front = que.front();
         que.pop();
@@ -220,7 +232,9 @@ void BTreeNode<T, Cmp>::showBTree(int level, std::ostream &os) const {
         if (node == nullptr) {
             continue;
         }
-        os << "(" << id << "|" << node->size << "|" << parentId << ")" << "(";
+        os << "[" << id << "|" << node->size << "|";
+        parentId < 0 ? os << "-" : os << parentId;
+        os << "]" << "(";
         for (int i = 0; i < level - 1; ++i) {
             T *data = node->datas[i];
             if (data != nullptr) {
@@ -228,7 +242,7 @@ void BTreeNode<T, Cmp>::showBTree(int level, std::ostream &os) const {
             } else {
                 os << "n";
             }
-            os << "|)"[i == level - 2] << std::flush;;;
+            os << "|)"[i == level - 2] << std::flush;
             que.push({node->children[i],
                       std::pair<int, std::pair<int, int>>{depth + 1, std::pair<int, int>{cnt++, id}}});
         }
