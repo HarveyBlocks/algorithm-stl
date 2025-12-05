@@ -19,7 +19,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     BTreeNodeReference<T, Cmp> &BTreeNodeReference<T, Cmp>::operator=(const BTreeNode<T, Cmp> *ref) {
-        this->Reference<BTreeNode<T, Cmp>>::operator=(ref);
+        this->ReferenceImpl<BTreeNode<T, Cmp>>::operator=(ref);
         return *this;
     }
 

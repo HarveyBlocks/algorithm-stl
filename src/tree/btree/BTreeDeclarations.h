@@ -21,7 +21,7 @@ namespace harvey::algorithm::tree::btree {
     class BTreeNodeReference;
 
     template<typename T>
-    using BTreeData = Reference<T>;
+    class BTreeData;
 
     /**
      * 或指向某个node的child, 或指向某个node的data

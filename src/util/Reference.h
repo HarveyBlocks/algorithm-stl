@@ -7,41 +7,57 @@
 
 template<typename T>
 class Reference {
+public:
+    virtual void release() = 0;
+
+    virtual T *operator->() const = 0;
+
+    virtual T &operator*() const = 0;
+
+    virtual bool operator==(const T *n) const = 0;
+
+    virtual bool operator!=(const T *n) const = 0;
+
+    virtual Reference<T> &operator=(const T *ref) = 0;
+};
+
+template<typename T>
+class ReferenceImpl : public Reference<T> {
 protected:
     T *reference;
 public:
 
-    explicit Reference(const T *reference = nullptr) :
+    explicit ReferenceImpl(const T *reference = nullptr) :
             reference(const_cast<T *>(reference)) {}
 
 
-    void release() { // 完全代理reference的操作
+    void release() override { // 完全代理reference的操作
         delete reference;
         reference = nullptr;
     }
 
-    T *operator->() const {
+    T *operator->() const override {
         return reference;
     }
 
-    T &operator*() const {
+    T &operator*() const override {
         return *reference;
     }
 
-    bool operator==(const T *n) const {
+    bool operator==(const T *n) const override {
         return this->reference == n;
     }
 
-    bool operator!=(const T *n) const {
+    bool operator!=(const T *n) const override {
         return this->reference != n;
     }
 
-    virtual Reference<T> &operator=(const T *ref) {
+    ReferenceImpl<T> &operator=(const T *ref) override {
         this->reference = const_cast<T *>(ref);
         return *this;
     };
 
-    Reference<T> &operator=(const Reference<T> &ref) {
+    ReferenceImpl<T> &operator=(const ReferenceImpl<T> &ref)  {
         if (this != &ref) {
             this->reference = ref.reference;
         }

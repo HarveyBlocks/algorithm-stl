@@ -5,6 +5,7 @@
 #ifndef ALGORITHM_B_TREE_H
 #define ALGORITHM_B_TREE_H
 
+#include "BTreeData.h"
 #include "InsertGroup.h"
 #include "BTreeReference.h"
 #include "BTreeNode.h"

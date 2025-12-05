@@ -158,4 +158,5 @@ add_executable(algorithm
         src/tree/btree/BTreeNode.h
         src/tree/btree/BTreeReference.h
         src/tree/btree/InsertGroup.h
+        src/tree/btree/BTreeData.h
 )
