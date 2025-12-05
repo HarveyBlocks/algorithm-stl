@@ -32,14 +32,14 @@ template<typename T, typename Cmp = Greater<T>>
 using BTreeTrace = Stack<BTreeElement<T, Cmp>>;
 
 
-template<typename T, typename Cmp = Greater<T>>
-class BTreeNodeReference {
-private:
-    BTreeNode<T, Cmp> *reference;
+template<typename T>
+class Reference {
+protected:
+    T *reference;
 public:
 
-    explicit BTreeNodeReference(const BTreeNode<T, Cmp> *reference = nullptr) :
-            reference(const_cast<BTreeNode<T, Cmp> *>(reference)) {}
+    explicit Reference(const T *reference = nullptr) :
+            reference(const_cast<T *>(reference)) {}
 
 
     void release() { // 完全代理reference的操作
@@ -47,11 +47,11 @@ public:
         reference = nullptr;
     }
 
-    BTreeNode<T, Cmp> *operator->() const {
+    T *operator->() const {
         return reference;
     }
 
-    BTreeNode<T, Cmp> &operator*() const {
+    T &operator*() const {
         return *reference;
     }
 
@@ -63,19 +63,30 @@ public:
         return this->reference != n;
     }
 
-    BTreeNodeReference &operator=(std::nullptr_t n) {
+    virtual Reference<T> &operator=(std::nullptr_t n) {
         this->reference = n;
         return *this;
     };
+};
 
-    BTreeNodeReference &operator=(const BTreeNodeReference &src) {
+template<typename T, typename Cmp = Greater<T>>
+class BTreeNodeReference : public Reference<BTreeNode<T, Cmp>> {
+public:
+    explicit BTreeNodeReference(const BTreeNode<T, Cmp> *reference = nullptr) :
+            Reference<BTreeNode<T, Cmp>>(reference) {}
+
+    BTreeNodeReference<T, Cmp> &operator=(std::nullptr_t n) override {
+        this->Reference<BTreeNode<T, Cmp>>::operator=(n);
+        return *this;
+    };
+
+    BTreeNodeReference<T, Cmp> &operator=(const BTreeNodeReference<T, Cmp> &src) {
         if (this != &src) {
             this->reference = src.reference;
         }
         return *this;
     };
 };
-
 template<typename T, typename Cmp = Greater<T>>
 using BTreeDataReference = T *;
 

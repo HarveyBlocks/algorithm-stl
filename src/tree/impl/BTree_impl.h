@@ -218,7 +218,7 @@ double BTree<T, Cmp>::calRate() const {
         }
         que.push(node->childAt(level - 1));
     }
-    return double(used) * 1.0 / nodeCnt / (level - 1);
+    return double(used)  / nodeCnt / (level - 1);
 }
 
 template<typename T, typename Cmp>

@@ -64,7 +64,7 @@ int bigDataBtreeDemo() {
     for (int i = 0; i < datas.size(); ++i) {
         IntBTreeTrace trace = bTree.search(datas[i]);
         bTree.remove(trace);
-        if (i % 100000 == 0) {
+        if (i % 1000000 == 0) {
             std::cout << "ping..." << bTree.calRate() << std::endl;
         }
     }
