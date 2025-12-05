@@ -214,7 +214,7 @@ namespace harvey::algorithm::tree::btree {
             }
             nodeCnt++;
             for (int i = 0; i < level - 1; ++i) {
-                BTreeData<T> data = node->dataAt(i);
+                const BTreeData<T>& data = node->dataAt(i);
                 if (data != nullptr) {
                     used++;
                 }

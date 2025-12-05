@@ -43,9 +43,6 @@ namespace harvey::algorithm::tree::btree {
         BTreeNode<T, Cmp> plus(int index, const InsertGroup<T, Cmp> &insertGroup) const;
 
 
-        BTreeData<T> resetData(int index, const T &value);
-
-
         void removeFirst();
 
         void insertFirst(const BTreeData<T> &data, const BTreeNodeReference<T, Cmp> &firstChild);

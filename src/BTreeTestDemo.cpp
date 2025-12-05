@@ -39,7 +39,7 @@ bool btreeDemoLoop() {
         buildBTree(bTree, datas);
         if (cnt % 100 == 0) {
             std::cout << "ping..." << bTree.calRate() << std::endl;
-            return false;
+            //return false;
         }
         Random::shuffle(datas);
         for (const auto &item: datas) {

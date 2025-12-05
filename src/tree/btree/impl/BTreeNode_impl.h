@@ -157,14 +157,6 @@ namespace harvey::algorithm::tree::btree {
 
 
     template<typename T, typename Cmp>
-    BTreeData<T> BTreeNode<T, Cmp>::resetData(int index, const T &value) {
-        BTreeData<T> old = datas[index];
-        BTreeData<T> reset = datas[index] = new T(value);
-        delete old;
-        return reset;
-    }
-
-    template<typename T, typename Cmp>
     BTreeData<T> BTreeNode<T, Cmp>::dataAt(int index) const {
         return datas[index];
     }
