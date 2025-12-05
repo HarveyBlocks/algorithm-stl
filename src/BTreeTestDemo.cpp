@@ -39,12 +39,18 @@ bool btreeDemoLoop() {
         buildBTree(bTree, datas);
         if (cnt % 100 == 0) {
             std::cout << "ping..." << bTree.calRate() << std::endl;
-            //return false;
+            // 这一次就使用clear进行测试吧
+            bTree.clear();
+            // return false;
+        } else {
+            Random::shuffle(datas);
+            for (const auto &item: datas) {
+                IntBTreeTrace trace = bTree.search(item);
+                bTree.remove(trace);
+            }
         }
-        Random::shuffle(datas);
-        for (const auto &item: datas) {
-            IntBTreeTrace trace = bTree.search(item);
-            bTree.remove(trace);
+        if (!bTree.empty()) {
+            throw IllegalStateException("should be empty");
         }
     }
     return true;

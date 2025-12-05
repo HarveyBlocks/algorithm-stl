@@ -100,7 +100,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     void BTreeElement<T, Cmp>::moveFromRightBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> right) {
-        BTreeData<T> parentData = this->data();
+        const BTreeData<T> &parentData = this->data();
         // parent->cur.last
         cur->datas[cur->size] = parentData;
         cur->size++;
@@ -113,7 +113,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     void BTreeElement<T, Cmp>::moveFromLeftBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> left) {
-        BTreeData<T> parentData = this->data();
+        const BTreeData<T> &parentData = this->data();
         // parent->cur.first
         cur->insertFirst(parentData, left->childAt(left->size)/*left.children.last*/);
         // left.last->parent
@@ -127,7 +127,7 @@ namespace harvey::algorithm::tree::btree {
     template<typename T, typename Cmp>
     void BTreeElement<T, Cmp>::combine(int level) {
         // (left|parent|right)->left
-        BTreeData<T> data = this->data();
+        const BTreeData<T> &data = this->data();
         BTreeNodeReference<T, Cmp> left = this->node->children[this->index];
         BTreeNodeReference<T, Cmp> right = this->node->children[this->index + 1];
         int combineSize = left->size + 1 + right->size;

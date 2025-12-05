@@ -28,7 +28,6 @@ namespace harvey::algorithm::tree::btree {
         friend class BTreeElement<T, Cmp>;
 
 
-        [[nodiscard]] bool empty() const;
 
         [[nodiscard]] bool leaf() const;
 
@@ -55,6 +54,7 @@ namespace harvey::algorithm::tree::btree {
 
 
         [[nodiscard]] bool full(int level) const;
+        [[nodiscard]] bool empty() const;
 
         /**
          * @param value target
