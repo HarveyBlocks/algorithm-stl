@@ -14,14 +14,14 @@ private:
     int size;
 public:
 
-    explicit OrderStatisticTreeNode(const T &value, tree::RedBlackTreeNodeColor color
-    = tree::RedBlackTreeNodeColor::RED) :
+    explicit OrderStatisticTreeNode(
+            const T &value, tree::RedBlackTreeNodeColor color = tree::RedBlackTreeNodeColor::RED) :
             RedBlackTreeNode<T>(value, color), size(1) {
 
     }
 
-    explicit OrderStatisticTreeNode(BinaryTreeNode<T> *node, tree::RedBlackTreeNodeColor color
-    = tree::RedBlackTreeNodeColor::RED) :
+    explicit OrderStatisticTreeNode(
+            BinaryTreeNode<T> *node, tree::RedBlackTreeNodeColor color= tree::RedBlackTreeNodeColor::RED) :
             RedBlackTreeNode<T>(node, color), size(1) {
         this->updateSize();
     }

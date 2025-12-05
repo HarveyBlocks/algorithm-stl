@@ -6,7 +6,7 @@
 #ifndef ALGORITHM_TREE_NODE_H
 #define ALGORITHM_TREE_NODE_H
 
-#include "../lang/exception/IllegalStateException.h"
+#include "../../lang/exception/IllegalStateException.h"
 
 template<class T>
 class BinaryTreeNode {

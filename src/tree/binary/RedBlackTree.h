@@ -8,7 +8,7 @@
 
 #include "BinaryBalanceSearchTree.h"
 #include "RedBlackTreeNode.h"
-#include "../lang/exception/IllegalArgumentException.h"
+#include "../../lang/exception/IllegalArgumentException.h"
 
 template<class T>
 class RedBlackTree : public BinaryBalanceSearchTree<T> {

@@ -9,6 +9,9 @@
 #include "OrderStatisticTreeNode.h"
 #include "RedBlackTree.h"
 
+/**
+ * 能够获取第N小的值, head(0)就是最小值
+ */
 template<class T>
 class OrderStatisticTree : public RedBlackTree<T> {
 protected:
@@ -36,12 +39,20 @@ public:
 
     T *head(int level = 0) {
         BinaryTreeNode<T> *node = this->getRoot();
-        int leftSize;
-        while (node != nullptr && (leftSize = OrderStatisticTreeNode<T>::getSize(node->getLeft())) != level) {
-            if (leftSize == level) {
+        int lessCount = 0;
+        while (node != nullptr) {
+            int leftSize = OrderStatisticTreeNode<T>::getSize(node->getLeft());
+            lessCount += leftSize;
+            if (lessCount == level) {
                 break;
             }
-            node = leftSize < level ? node->getLeft() : node->getRight();
+            if (lessCount < level) {
+                node = node->getRight();
+                lessCount++; // for root
+            } else {
+                node = node->getLeft();
+                lessCount -= leftSize;
+            }
         }
         if (node == nullptr) {
             return nullptr;

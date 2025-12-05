@@ -7,7 +7,7 @@
 #define ALGORITHM_TREAP_H
 
 #include "BinaryBalanceSearchTree.h"
-#include "../util/Random.h"
+#include "../../util/Random.h"
 #include "TreapNode.h"
 
 template<class T>

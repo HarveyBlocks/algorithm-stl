@@ -4,12 +4,12 @@
 #include <functional>
 #include <iostream>
 #include <iomanip>
-#include "../container/sequence/Stack.h"
-#include "../util/function/function.h"
-#include "../container/sequence/Queue.h"
+#include "../../container/sequence/Stack.h"
+#include "../../util/function/function.h"
+#include "../../container/sequence/Queue.h"
 #include "BinaryTreeNode.h"
 #include "TraversalOrder.h"
-#include "../lang/StringBuilder.h"
+#include "../../lang/StringBuilder.h"
 
 
 template<class T>

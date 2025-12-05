@@ -7,7 +7,7 @@
 #define ALGORITHM_RED_BLACK_TREE_NODE_H
 
 #include "BinaryTreeNode.h"
-#include "../util/ColorfulString.h"
+#include "../../util/ColorfulString.h"
 
 namespace tree {
     enum RedBlackTreeNodeColor {

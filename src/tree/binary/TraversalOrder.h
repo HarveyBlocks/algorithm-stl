@@ -8,7 +8,7 @@
 
 #include <functional>
 #include "BinaryTreeNode.h"
-#include "../container/sequence/Stack.h"
+#include "../../container/sequence/Stack.h"
 #include "TraversalOrderNode.h"
 
 namespace tree {

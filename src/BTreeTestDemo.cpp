@@ -1,10 +1,11 @@
 #define DEBUG
 
 #include <fstream>
-#include "tree/BTree.h"
+#include "tree/btree/BTree.h"
 #include "./util/Random.h"
 
 using namespace std;
+using namespace harvey::algorithm::tree::btree;
 
 using IntBTreeTrace = BTreeTrace<int, Greater<int>>;
 using IntBTree = BTree<int, Greater<int>>;
@@ -91,10 +92,20 @@ int btreeDemo() {
 // 一. 优化思路
 //  序号 策略                                                          效果(目标填充率)
 //  0. 普通的B+Tree                                                      55%-65%
-//  1. B*Tree, 插入时不分裂, 转移到兄弟, 兄弟也满了才分裂                    75%-85%
+//  1. B*Tree, 插入时不分裂, 转移到兄弟, 兄弟也满了才分裂                      75%-85%
+//  2. 检测(How To Get?)到比较稀疏, 就触发合并什么的(在Node设置一个rate字段吗?)
+//      设置element_count表示存储的值有多少,node_count表示有几个节点:
+//          parent.element_count = parent.size+(leaf?0:stream(parent.children).map(node::element_count).sum())
+//          parent.node_count = 1+(leaf?0:stream(parent.children).map(node::node_count).sum())
+//      每插入元素一个到node, 两个值的变化:
+//      - 元素直接插入到节点  this.element_count++, parent.element_count++(递归)
+//      - 元素延迟插入到节点  this.brother.element_count++, parent.element_count++(递归)
+//      - 节点分裂          reset(new_node_left.element_count), reset(new_node_right.element_count), parent.element_count++(递归)
+//      每删除元素一个
+//      还要考虑如果检测到太低了, 又如何进行节点合并呢?把一个太少的+合并到兄弟?
+//
 // TODO
-//  2. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)
-//  3. 检测(How To Get?)到比较稀疏, 就触发合并什么的
+//  3. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)
 // 二. 序列化
 //  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
 //  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
