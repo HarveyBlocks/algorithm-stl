@@ -25,7 +25,6 @@ public:
         while (!trace.empty()) {
             OrderStatisticTreeNode<T>::updateSize(trace.pop());
         }
-        // TODO
         Stack<OrderStatisticTreeNode<T> *> st;
         this->traversal([&st](BinaryTreeNode<T> *node, int depth) {
             st.push(OrderStatisticTreeNode<T>::cast(node));

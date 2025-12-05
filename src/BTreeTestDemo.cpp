@@ -25,7 +25,7 @@ void showDatas(const vector<int> &data, ostream &os) {
     os << std::endl;
 }
 
-int btreeDemoLoop() {
+bool btreeDemoLoop() {
     std::cout << "loop" << std::endl;
     int cnt = 1000;
     // ofstream os("../data.txt");
@@ -39,6 +39,7 @@ int btreeDemoLoop() {
         buildBTree(bTree, datas);
         if (cnt % 100 == 0) {
             std::cout << "ping..." << bTree.calRate() << std::endl;
+            return false;
         }
         Random::shuffle(datas);
         for (const auto &item: datas) {
@@ -46,11 +47,11 @@ int btreeDemoLoop() {
             bTree.remove(trace);
         }
     }
-    return 0;
+    return true;
 }
 
 
-int bigDataBtreeDemo() {
+bool bigDataBtreeDemo() {
     std::cout << "big data" << std::endl;
 //    ofstream os("../data.txt");
     size_t size = 10000000;
@@ -69,7 +70,7 @@ int bigDataBtreeDemo() {
             std::cout << "ping..." << bTree.calRate() << std::endl;
         }
     }
-    return 0;
+    return true;
 }
 
 
@@ -110,4 +111,4 @@ int btreeDemo() {
 //  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
 //  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
 // 三. IO
-int BTreeTestDemoCode = /*btreeDemo() &&*/ btreeDemoLoop() | bigDataBtreeDemo();
+bool BTreeTestDemoCode = /*btreeDemo() &&*/ btreeDemoLoop() && bigDataBtreeDemo();

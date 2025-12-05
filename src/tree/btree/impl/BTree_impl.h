@@ -97,7 +97,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     void BTree<T, Cmp>::insertLeaf(const T &data, BTreeTrace<T, Cmp> &trace) {
-        InsertGroup insertGroup(BTreeData<T>(new T(data)));
+        InsertGroup insertGroup(data);
         int upperBound = level - 1;
         while (!trace.empty()) {
             BTreeElement<T, Cmp> top = trace.pop();

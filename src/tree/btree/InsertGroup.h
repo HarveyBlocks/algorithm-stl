@@ -14,11 +14,11 @@ namespace harvey::algorithm::tree::btree {
         BTreeNodeReference<T, Cmp> left;
         BTreeNodeReference<T, Cmp> right;
 
-        explicit InsertGroup(BTreeData<T> data);
+        explicit InsertGroup(const T& data);
     };
 
     template<typename T, typename Cmp>
-    InsertGroup<T, Cmp>::InsertGroup(BTreeData<T> data) : data(data), left(nullptr),
+    InsertGroup<T, Cmp>::InsertGroup(const T& data) : data(new T(data)), left(nullptr),
                                                           right(BTreeNodeReference<T, Cmp>(nullptr)) {}
 }
 #endif //ALGORITHM_INSERT_GROUP_H
