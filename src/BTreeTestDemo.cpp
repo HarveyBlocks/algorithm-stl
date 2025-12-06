@@ -114,7 +114,8 @@ namespace harvey::algorithm::tree::btree {
 //      - 节点分裂          reset(new_node_left.element_count), reset(new_node_right.element_count), parent.element_count++(递归)
 //      每删除元素一个
 //      还要考虑如果检测到太低了, 又如何进行节点合并呢?把一个太少的+合并到兄弟?
-//  3. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)                85%-100%
+//  3. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)                85%-100%,
+//        有一个很有意思的数据点, level=48, n=96, 由于下限的存在, 即使是最优方案, 还是会留出大量的空间
 // 二. 序列化
 //  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
 //  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
@@ -346,7 +347,13 @@ namespace harvey::algorithm::tree::btree::bulk {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
 
-        // TODO 解开递归
+        /**
+         * 解开递归? <br>
+         * 递归最深和树的深度一致, <br>
+         * 树的深度最多30层左右(level=3, 千亿数据), 对于递归的压力来说还好吧?  <br>
+         * 而且生产中, level一般在100左右, 数据量百万级就已经很多了, 这种情况下深度一般是不到10层的 <br>
+         * 而且递归的速度比栈要稍微快一点
+         */
         template<typename Cmp = Greater<T>>
         [[nodiscard]] BTreeNodeReference<T, Cmp> build(bulk::SplitPolicyFactory *factory, int layer) const {
             BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->level));
@@ -413,7 +420,7 @@ namespace harvey::algorithm::tree::btree {
             for (int i = 0; i < n; ++i) {
                 src[i] = i;
             }
-            int level = Random::signedInt(3, 20);
+            int level = Random::signedInt(3, 100);
             IntBTree bTree(level);
             bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
             // bTree.showBTree();
@@ -433,18 +440,34 @@ namespace harvey::algorithm::tree::btree {
         for (int i = 0; i < n; ++i) {
             src[i] = i;
         }
-        int level = Random::signedInt(5, 20);
+        int level = Random::signedInt(5, 100);
         std::cout << "start...level = " << level << ",n = " << n << std::endl;
         IntBTree bTree(level);
         bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
         // bTree.showBTree();
         std::cout << "max-depth = " << bTree.qualified() << std::endl;
         std::cout << "rate = " << bTree.calRate() << std::endl;
+        return true; // 释放资源这一步最消耗时间
+    }
+
+    bool bulkDemo() {
+        int n = 96;
+        std::vector<int> src(n);
+        for (int i = 0; i < n; ++i) {
+            src[i] = i;
+        }
+        int level = 48;
+        IntBTree bTree(level);
+        bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
+         bTree.showBTree();
+        int maxDepth = bTree.qualified();
+        std::cout << "ping...level = " << level << ", n = " << n << ", max-depth = " << maxDepth
+                  << ", rate = " << bTree.calRate() << std::endl;
         return true;
     }
 
 #ifdef BULK
-    bool bulkDemoSucceed = bulkLoopDemo() && bulkBigDataDemo();
+    bool bulkDemoSucceed = bulkDemo() && bulkLoopDemo() && bulkBigDataDemo();
 #endif
 
 }

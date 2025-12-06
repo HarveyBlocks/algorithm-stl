@@ -77,7 +77,6 @@ namespace harvey::algorithm::tree::btree {
                 int depth = pair.first;
                 BTreeNodeReference<T, Cmp> node = pair.second;
                 stk.pop();
-                depth++;
                 int filledCount = node->filledCount();
                 if (filledCount >= level || (this->root != node && filledCount < (level - 1) >> 1)) {
                     throw IllegalStateException("filled count is not match with level");
