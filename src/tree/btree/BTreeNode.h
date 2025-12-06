@@ -28,8 +28,6 @@ namespace harvey::algorithm::tree::btree {
         friend class BTreeElement<T, Cmp>;
 
 
-        [[nodiscard]] bool leaf() const;
-
         /**
          * @return 对data进行new拷贝构造
          */
@@ -46,6 +44,8 @@ namespace harvey::algorithm::tree::btree {
         void insertFirst(const BTreeData<T> &data, const BTreeNodeReference<T, Cmp> &firstChild);
 
     public:
+
+        [[nodiscard]] bool leaf() const;
 
         explicit BTreeNode(int level);
 

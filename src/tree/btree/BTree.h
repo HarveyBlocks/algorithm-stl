@@ -22,13 +22,16 @@
 #ifdef BULK
 
 #include <vector>
+#include <stack>
 
 #endif
 
-template<typename T>
-class BulkSource;
-
 namespace harvey::algorithm::tree::btree {
+
+    namespace bulk {
+        template<typename T>
+        class BulkSource;
+    }
     template<typename T, typename Cmp>
     class BTree {
     private:
@@ -62,6 +65,65 @@ namespace harvey::algorithm::tree::btree {
 
         void showBTree(std::ostream &os = std::cout) const;
 
+        void qualified() const {
+            // 1. lower bound 和 upper bound
+            // 2. 层数都一样
+            // 3. size都匹配
+            ::std::stack<::std::pair<int, BTreeNodeReference<T, Cmp>>> stk;
+            stk.push({1, this->root});
+            int depthMax = 0;
+            while (!stk.empty()) {
+                auto pair = stk.top();
+                int depth = pair.first;
+                BTreeNodeReference<T, Cmp> node = pair.second;
+                stk.pop();
+                depth++;
+                int filledCount = node->filledCount();
+                if (filledCount >= level || (this->root != node && filledCount < (level - 1) >> 1)) {
+                    throw IllegalStateException("filled count is not match with level");
+                }
+                bool leaf = node->leaf();
+                for (int i = 0; i < filledCount; ++i) {
+                    const BTreeData<T> &data = node->dataAt(i);
+                    BTreeNodeReference<T, Cmp> child = node->childAt(i);
+                    if (data == nullptr) {
+                        throw IllegalStateException("null data in filled element");
+                    }
+                    if (leaf) {
+                        continue;
+                    }
+                    if (child == nullptr) {
+                        throw IllegalStateException("null child in filled element");
+                    }
+                    stk.push({depth + 1, child});
+                }
+                if (node->empty()) {
+                    if (depthMax == 0) {
+                        depthMax = depth;
+                    } else if (depthMax != depth) {
+                        throw IllegalStateException("depth not equals with other node");
+                    }
+                    if (!leaf) {
+                        BTreeNodeReference<T, Cmp> child = node->childAt(filledCount);
+                        if (child == nullptr) {
+                            throw IllegalStateException("null child in filled element");
+                        }
+                        stk.push({depth + 1, child});
+                    }
+                }
+                for (int i = filledCount; i < level - 1; ++i) {
+                    const BTreeData<T> &data = node->dataAt(i);
+                    BTreeNodeReference<T, Cmp> child = node->childAt(i + 1);
+                    if (data != nullptr) {
+                        throw IllegalStateException("unreleased data in filled element");
+                    }
+                    if (child != nullptr) {
+                        throw IllegalStateException("unreleased data in filled element");
+                    }
+                }
+            }
+        }
+
 #endif
 #ifdef BULK
 
@@ -70,9 +132,10 @@ namespace harvey::algorithm::tree::btree {
          *
          * @return
          */
-        BTree &bulk(const BulkSource<T> &sorted);
+        BTree &bulk(const bulk::BulkSource<T> &sorted);
 
 #endif
+
 
     private:
         [[nodiscard]] BTreeNodeReference<T, Cmp> instanceNode() const;

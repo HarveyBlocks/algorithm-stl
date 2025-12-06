@@ -18,6 +18,7 @@ public:
 
     virtual bool operator!=(const T *n) const = 0;
 
+
     virtual Reference<T> &operator=(const T *ref) = 0;
 };
 
@@ -60,6 +61,7 @@ public:
     bool operator!=(const T *n) const override {
         return this->reference != n;
     }
+
 
     ReferenceImpl<T> &operator=(const T *ref) override {
         this->reference = const_cast<T *>(ref);

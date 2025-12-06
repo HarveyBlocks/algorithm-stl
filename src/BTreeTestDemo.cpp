@@ -6,95 +6,98 @@
 #include "tree/btree/BTree.h"
 #include "./util/Random.h"
 
-using namespace harvey::algorithm::tree::btree;
+namespace harvey::algorithm::tree::btree {
 
-using IntBTreeTrace = BTreeTrace<int, Greater<int>>;
-using IntBTree = BTree<int, Greater<int>>;
+    using IntBTreeTrace = BTreeTrace<int, Greater<int>>;
+    using IntBTree = BTree<int, Greater<int>>;
 
-IntBTree &buildBTree(IntBTree &bTree, const std::vector<int> &src) {
-    for (const auto &item: src) {
-        bTree.insert(item);
-    }
-    return bTree;
-}
-
-void showDatas(const std::vector<int> &data, std::ostream &os) {
-    os << "[";
-    for (int i = 0; i < data.size(); ++i) {
-        os << data[i] << ",]"[i == data.size() - 1];
-    }
-    os << std::endl;
-}
-
-bool btreeDemoLoop() {
-    std::cout << "loop" << std::endl;
-    int cnt = 1000;
-    // ofstream os("../data.txt");
-    while (cnt-- > 0) {
-        size_t size = Random::unsignedInt() % 10000 + 50;
-        std::vector<int> datas(size);
-        for (int i = 0; i < size; ++i) {
-            datas[i] = Random::signedInt(-1000, 1000);
+    IntBTree &buildBTree(IntBTree &bTree, const std::vector<int> &src) {
+        for (const auto &item: src) {
+            bTree.insert(item);
         }
-        BTree<int, Greater<int>> bTree(int(Random::unsignedInt() % 20 + 3));
-        buildBTree(bTree, datas);
-        if (cnt % 100 == 0) {
-            std::cout << "ping..." << bTree.calRate() << std::endl;
-            // 这一次就使用clear进行测试吧
-            bTree.clear();
-            // return false;
-        } else {
-            Random::shuffle(datas);
-            for (const auto &item: datas) {
-                IntBTreeTrace trace = bTree.search(item);
-                bTree.remove(trace);
+        return bTree;
+    }
+
+    void showDatas(const std::vector<int> &data, std::ostream &os) {
+        os << "[";
+        for (int i = 0; i < data.size(); ++i) {
+            os << data[i] << ",]"[i == data.size() - 1];
+        }
+        os << std::endl;
+    }
+
+    bool btreeDemoLoop() {
+        std::cout << "loop" << std::endl;
+        int cnt = 1000;
+        // ofstream os("../data.txt");
+        while (cnt-- > 0) {
+            size_t size = Random::unsignedInt() % 10000 + 50;
+            std::vector<int> datas(size);
+            for (int i = 0; i < size; ++i) {
+                datas[i] = Random::signedInt(-1000, 1000);
+            }
+            BTree<int, Greater<int>> bTree(int(Random::unsignedInt() % 20 + 3));
+            buildBTree(bTree, datas);
+            if (cnt % 100 == 0) {
+                std::cout << "ping..." << bTree.calRate() << std::endl;
+                // 这一次就使用clear进行测试吧
+                bTree.clear();
+                // return false;
+            } else {
+                Random::shuffle(datas);
+                for (const auto &item: datas) {
+                    IntBTreeTrace trace = bTree.search(item);
+                    bTree.remove(trace);
+                }
+            }
+            if (!bTree.empty()) {
+                throw IllegalStateException("should be empty");
             }
         }
-        if (!bTree.empty()) {
-            throw IllegalStateException("should be empty");
-        }
+        return true;
     }
-    return true;
-}
 
 
-bool bigDataBtreeDemo() {
-    std::cout << "big data" << std::endl;
+    bool bigDataBtreeDemo() {
+        std::cout << "big data" << std::endl;
 //    ofstream os("../data.txt");
-    size_t size = 10000000;
-    Random::resetSeed();
-    std::vector<int> datas(size);
-    for (int i = 0; i < size; ++i) {
-        datas[i] = Random::signedInt(-10000, 10000);
-    }
-    BTree<int, Greater<int>> bTree(20);
-    buildBTree(bTree, datas);
-    Random::shuffle(datas);
-    for (int i = 0; i < datas.size(); ++i) {
-        IntBTreeTrace trace = bTree.search(datas[i]);
-        bTree.remove(trace);
-        if (i % 1000000 == 0) {
-            std::cout << "ping..." << bTree.calRate() << std::endl;
+        size_t size = 10000000;
+        Random::resetSeed();
+        std::vector<int> datas(size);
+        for (int i = 0; i < size; ++i) {
+            datas[i] = Random::signedInt(-10000, 10000);
         }
+        BTree<int, Greater<int>> bTree(20);
+        buildBTree(bTree, datas);
+        Random::shuffle(datas);
+        for (int i = 0; i < datas.size(); ++i) {
+            IntBTreeTrace trace = bTree.search(datas[i]);
+            bTree.remove(trace);
+            if (i % 1000000 == 0) {
+                std::cout << "ping..." << bTree.calRate() << std::endl;
+            }
+        }
+        return true;
     }
-    return true;
-}
 
 
-int btreeDemo() {
-    // 2 8 12 18 30 24 6 5 4 1 3
-    IntBTree bTree(4);
-    const std::vector<int> &src{
-            2, 8, 12, 18, 30, 24, 6, 5, 4, 1, 3, 46, 73, 45, 39, 2, 6, 83, 55, 89, 21, 37, 4, 64, 100, 66, 14, 43, 34,
-            87, 20, 8, 91, 86, 74, 29, 69, 65, 11, 85, 63, 30, 62, 44, 77, 16, 28, 90, 17, 81, 68, 9, 75, 79, 35, 19,
-            31, 10, 67, 51, 40, 58, 94, 72, 12, 42, 18, 1, 24, 49, 76, 32, 7, 96, 56, 48, 27, 97, 88, 23, 0, 99, 78, 59,
-            50, 22, 53, 26, 36, 93, 61, 70, 54, 60, 92, 95, 57, 82, 84, 15, 47, 38, 33, 3, 98, 13, 5, 71, 80, 52, 25
-    };
-    std::ofstream os("../data.txt");
-    buildBTree(bTree, src);
-    bTree.showBTree(os);
-    return 0;
-}
+    int btreeDemo() {
+        // 2 8 12 18 30 24 6 5 4 1 3
+        IntBTree bTree(4);
+        const std::vector<int> &src{
+                2, 8, 12, 18, 30, 24, 6, 5, 4, 1, 3, 46, 73, 45, 39, 2, 6, 83, 55, 89, 21, 37, 4, 64, 100, 66, 14, 43,
+                34,
+                87, 20, 8, 91, 86, 74, 29, 69, 65, 11, 85, 63, 30, 62, 44, 77, 16, 28, 90, 17, 81, 68, 9, 75, 79, 35,
+                19,
+                31, 10, 67, 51, 40, 58, 94, 72, 12, 42, 18, 1, 24, 49, 76, 32, 7, 96, 56, 48, 27, 97, 88, 23, 0, 99, 78,
+                59,
+                50, 22, 53, 26, 36, 93, 61, 70, 54, 60, 92, 95, 57, 82, 84, 15, 47, 38, 33, 3, 98, 13, 5, 71, 80, 52, 25
+        };
+        std::ofstream os("../data.txt");
+        buildBTree(bTree, src);
+        bTree.showBTree(os);
+        return 0;
+    }
 
 
 // 一. 优化思路
@@ -118,19 +121,23 @@ int btreeDemo() {
 //  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
 //  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
 // 三. IO
+
 #ifdef BASIC_BTREE
-bool BTreeTestDemoCode = /*btreeDemo() &&*/ btreeDemoLoop() && bigDataBtreeDemo();
+    bool BTreeTestDemoCode = /*btreeDemo() &&*/ btreeDemoLoop() && bigDataBtreeDemo();
 #endif
 
-// TODO 调试时不开启 #define OPEN_BULK_POLICY_CACHE
+};
 
-#ifdef OPEN_BULK_POLICY_CACHE
+// TODO 调试时开启 #define CLOSE_BULK_POLICY_CACHE 关闭缓存
+//#define CLOSE_BULK_POLICY_CACHE
+
+#ifndef CLOSE_BULK_POLICY_CACHE
 
 #include "util/type.h"
 
 #endif
 
-namespace harvey::algorithm::tree::btree {
+namespace harvey::algorithm::tree::btree::bulk {
     struct SplitPolicy {
         int layer;
         int nodeSize;
@@ -144,14 +151,14 @@ namespace harvey::algorithm::tree::btree {
          */
         int smallerChildrenCount;
 
-        SplitPolicy() : SplitPolicy(-1, 0, 0, 0) {}
+        SplitPolicy() : SplitPolicy(0, 0, 0, 0) {}
 
         SplitPolicy(int layer, int nodeSize, int smallerChildSize, int smallerChildrenCount) :
                 layer(layer), nodeSize(nodeSize), smallerChildSize(smallerChildSize),
                 smallerChildrenCount(smallerChildrenCount) {}
 
         [[nodiscard]] bool notFound() const {
-            return nodeSize == -1;
+            return layer == 0;
         }
 
         void update(const SplitPolicy &challenger) {
@@ -162,11 +169,12 @@ namespace harvey::algorithm::tree::btree {
             this->smallerChildrenCount = challenger.smallerChildrenCount;
         }
 
-        [[nodiscard]] bool ok(int childSizeMin) const {
+        [[nodiscard]] bool ok(int childSizeMin, int childSizeMax) const {
             // 1. if(smaller) smaller >= child_min
-            return (smallerChildrenCount == 0 || smallerChildSize >= childSizeMin) &&
+            return (smallerChildrenCount == 0 ||
+                    childSizeMin <= smallerChildSize && smallerChildrenCount <= childSizeMax) &&
                    // 2. if(bigger) bigger >= child_min
-                   smallerChildSize + 1 >= childSizeMin;
+                   childSizeMin <= smallerChildSize + 1 && smallerChildSize + 1 <= childSizeMax;
         }
     };
 
@@ -180,7 +188,6 @@ namespace harvey::algorithm::tree::btree {
         }
 
     protected:
-        const int level;
 
         [[nodiscard]] int maxOn(int layer) const {
             return power(level, layer) - 1;
@@ -195,12 +202,12 @@ namespace harvey::algorithm::tree::btree {
             if (sourceSize < lowerBound) {
                 return {};
             }
-            if (sourceSize < level - 1) {// leaf
+            if (sourceSize < level) {// leaf
                 return {1, sourceSize, 0, 0};
             }
             layer = getLayer(sourceSize, layer);
-            int childMin = minOn(layer - 1);
-            int childMax = maxOn(layer - 1);
+            int childMin = minOn(layer);
+            int childMax = maxOn(layer);
             SplitPolicy policy;
             for (int nodeSize = level - 1; nodeSize >= lowerBound; --nodeSize) {
                 int sourceForChild = sourceSize - nodeSize;
@@ -210,8 +217,8 @@ namespace harvey::algorithm::tree::btree {
                 }
                 int smallerChildSize = sourceForChild / childrenCount;
                 int smallerChildrenCount = (smallerChildSize + 1) * childrenCount - sourceForChild;
-                SplitPolicy challenger(layer, nodeSize, smallerChildSize, smallerChildrenCount);
-                if (challenger.ok(childMin)) {
+                SplitPolicy challenger(layer + 1, nodeSize, smallerChildSize, smallerChildrenCount);
+                if (challenger.ok(childMin, childMax)) {
                     policy.update(challenger);
                 }
             }
@@ -221,6 +228,7 @@ namespace harvey::algorithm::tree::btree {
         [[nodiscard]] virtual int getLayer(int sourceSize, int layer) const = 0;
 
     public:
+        const int level;
 
         explicit SplitPolicyFactory(int level) : level(level) {}
 
@@ -229,14 +237,13 @@ namespace harvey::algorithm::tree::btree {
          * 2. size=level-1, 取得理论layer最小值 <br>
          * 3. size--, 这样layer就会逐渐丰满 <br>
          * @param sourceSize
-         * @param layer
+         * @param layer 包含node
          * @return
          */
         [[nodiscard]] virtual SplitPolicy create(int sourceSize, int layer) = 0;
 
         virtual SplitPolicyFactory *childFactory() = 0;
 
-        [[nodiscard]] int getLevel() const { return level; }
 
         virtual ~SplitPolicyFactory() = default;
     };
@@ -249,18 +256,18 @@ namespace harvey::algorithm::tree::btree {
     // policy.node
     class NodeSplitPolicyFactory : public SplitPolicyFactory {
     private:
-#ifdef OPEN_BULK_POLICY_CACHE
+#ifndef CLOSE_BULK_POLICY_CACHE
         std::unordered_map<int64, SplitPolicy> cache;
 #endif
     public:
         explicit NodeSplitPolicyFactory(int level) : SplitPolicyFactory(level) {}
 
         [[nodiscard]] int getLayer(int sourceSize, int layer) const override {
-            return layer;
+            return layer - 1;
         }
 
         SplitPolicy create(int sourceSize, int layer) override {
-#ifdef OPEN_BULK_POLICY_CACHE
+#ifndef CLOSE_BULK_POLICY_CACHE
             // 缓存增强
             int64 key = int64(sourceSize) << 32 | layer;
             const std::unordered_map<int64, SplitPolicy>::iterator &find = cache.find(key);
@@ -269,7 +276,7 @@ namespace harvey::algorithm::tree::btree {
             }
 #endif
             const SplitPolicy &policy = this->SplitPolicyFactory::create(sourceSize, layer, (level - 1) >> 1);
-#ifdef OPEN_BULK_POLICY_CACHE
+#ifndef CLOSE_BULK_POLICY_CACHE
             cache.insert({key, policy});
 #endif
             return policy;
@@ -289,7 +296,7 @@ namespace harvey::algorithm::tree::btree {
             int sourceForChild = sourceSize - level + 1;
             int childrenCount = level;
             for (layer = 1; maxOn(layer) * childrenCount <= sourceForChild; layer++);//TODO <=是否取等
-            return layer + 1;
+            return layer;
         }
 
         SplitPolicy create(int sourceSize, int layer) override {
@@ -308,101 +315,118 @@ namespace harvey::algorithm::tree::btree {
             delete _childFactory;
         }
     };
-}
 
-template<typename T>
-class BulkSource {
-    typename std::vector<T>::const_iterator begin;
-    typename std::vector<T>::const_iterator end;
-public:
-    explicit BulkSource(
-            const typename std::vector<T>::const_iterator &begin,
-            const typename std::vector<T>::const_iterator &end) :
-            begin(begin), end(end) {}
 
-    template<typename Cmp = Greater<T>>
-    [[nodiscard]] BTreeNodeReference<T, Cmp> build(int level) const {// 判断, 调度
-        if (sourceSize() == 0) {
-            // empty, then return
-            return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(level));
+    template<typename T>
+    class BulkSource {
+        typename std::vector<T>::const_iterator begin;
+        typename std::vector<T>::const_iterator end;
+    public:
+        explicit BulkSource(
+                const typename std::vector<T>::const_iterator &begin,
+                const typename std::vector<T>::const_iterator &end) :
+                begin(begin), end(end) {}
+
+        template<typename Cmp = Greater<T>>
+        [[nodiscard]] BTreeNodeReference<T, Cmp> build(int level) const {// 判断, 调度
+            if (sourceSize() == 0) {
+                // empty, then return
+                return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(level));
+            }
+            bulk::RootSplitPolicyFactory factory(level);
+            BTreeNodeReference<T, Cmp> node = build<Cmp>(&factory, 1); // 这个layer是随便的, 因为对于root其不生效
+            return node;
         }
-        RootSplitPolicyFactory factory(level);
-        BTreeNodeReference<T, Cmp> node = build<Cmp>(&factory, 0); // 这个layer是随便的, 因为对于root其不生效
-        return node;
-    }
 
-private:
+    private:
 
-    [[nodiscard]] int sourceSize() const {
-        return end - begin;
-    }
+        [[nodiscard]] int sourceSize() const {
+            return end - begin;
+        }
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "misc-no-recursion"
 
-    // TODO 解开递归
-    template<typename Cmp = Greater<T>>
-    [[nodiscard]] BTreeNodeReference<T, Cmp> build(SplitPolicyFactory *factory, int layer) const {
-        BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->getLevel()));
-        SplitPolicy policy = factory->create(sourceSize(), layer);
-        if (policy.notFound()) {
-            throw IllegalStateException("not find bulk build policy!");
-        }
-        node->resize(policy.nodeSize);
-        if (policy.layer == 1) { // leaf
-            // 递归出口
-            for (int i = 0; i < policy.nodeSize; ++i) {
-                node->setData(i, BTreeData<T>(*(begin + i)));
+        // TODO 解开递归
+        template<typename Cmp = Greater<T>>
+        [[nodiscard]] BTreeNodeReference<T, Cmp> build(bulk::SplitPolicyFactory *factory, int layer) const {
+            BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->level));
+            const bulk::SplitPolicy policy = factory->create(sourceSize(), layer/*包含node*/);
+            if (policy.notFound()) {
+                throw IllegalStateException("not find bulk build policy!");
             }
+            node->resize(policy.nodeSize);
+            if (policy.layer == 1) { // leaf
+                // 递归出口
+                for (int i = 0; i < policy.nodeSize; ++i) {
+                    node->setData(i, BTreeData<T>(*(begin + i)));
+                }
+                return node;
+            }
+            int childLayer = policy.layer - 1; // for children
+            bulk::SplitPolicyFactory *childFactory = factory->childFactory();
+            typename std::vector<T>::const_iterator childBegin = begin;
+            for (int i = 0; i < policy.nodeSize; ++i) {
+                int limit = policy.smallerChildSize + (i >= policy.smallerChildrenCount ? 1 /*bigger*/: 0);
+                auto childEnd = childBegin + limit;
+                BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, childEnd)
+                        .build<Cmp>(childFactory, childLayer);
+                node->setChild(i, child);
+                node->setData(i, BTreeData<T>(*(childEnd)));
+                // 1 for parent
+                childBegin = childEnd + 1;
+            }
+            BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, end).build<Cmp>(childFactory, childLayer);
+            node->setChild(policy.nodeSize, child);
             return node;
         }
-        int childLayer = policy.layer - 1; // for children
-        SplitPolicyFactory *childFactory = factory->childFactory();
-        typename std::vector<T>::const_iterator childBegin = begin;
-        for (int i = 0; i < policy.nodeSize; ++i) {
-            int limit = policy.smallerChildSize + (i >= policy.smallerChildrenCount ? 1 /*bigger*/: 0);
-            auto childEnd = childBegin + limit;
-            BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, childEnd).build<Cmp>(childFactory, childLayer);
-            node->setChild(i, child);
-            node->setData(i, BTreeData<T>(*(childEnd)));
-            // 1 for parent
-            childBegin = childEnd + 1;
-        }
-        BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, end).build<Cmp>(childFactory, childLayer);
-        node->setChild(policy.nodeSize, child);
-        return node;
-    }
 
 #pragma clang diagnostic pop
-};
+    };
+}
+namespace harvey::algorithm::tree::btree {
 
-template<typename T, typename Cmp>
-BTree<T, Cmp> &BTree<T, Cmp>::bulk(const BulkSource<T> &source) {
-    // 1. 用count算出能建造出几层的树(不考虑是否需要分裂)->N层及以上, N+1层以下
-    // 2. 构建N-1层(满), 需要元素X_1个, count==K*X+(K-1)+M
-    //      特别的, 构建N-2层满, 需要元素X_2个
-    // 3. 如果M==0, 构建K个N-1层(满), root节点的元素是K-1个, 由于条件一, K<level-1
-    // 4. 如果M>0, 构建K+1个N-1层, 但不满, 每一个的个数是count_1 = (count-k)/(k+1)
-    //      由条件1,2得X_2<count_1<X_1
-    // 故可以递归得构建, 步骤一二的判断过程直接执行, 步骤三四递归构架树, 将source划分成一块一块的, 然后构建
-    clear();
-    root.release();
-    root = source.template build<Cmp>(level);
-    return *this;
+
+    template<typename T, typename Cmp>
+    BTree<T, Cmp> &BTree<T, Cmp>::bulk(const bulk::BulkSource<T> &source) {
+        // 1. 用count算出能建造出几层的树(不考虑是否需要分裂)->N层及以上, N+1层以下
+        // 2. 构建N-1层(满), 需要元素X_1个, count==K*X+(K-1)+M
+        //      特别的, 构建N-2层满, 需要元素X_2个
+        // 3. 如果M==0, 构建K个N-1层(满), root节点的元素是K-1个, 由于条件一, K<level-1
+        // 4. 如果M>0, 构建K+1个N-1层, 但不满, 每一个的个数是count_1 = (count-k)/(k+1)
+        //      由条件1,2得X_2<count_1<X_1
+        // 故可以递归得构建, 步骤一二的判断过程直接执行, 步骤三四递归构架树, 将source划分成一块一块的, 然后构建
+        clear();
+        root.release();
+        root = source.template build<Cmp>(level);
+        return *this;
+    }
+
 }
 
 #include <algorithm>
 
-bool bulkDemo() {
-    std::vector<int> src(111);
-    for (int i = 0; i < 111; ++i) {
-        src[i] = i;
+namespace harvey::algorithm::tree::btree {
+
+    bool bulkDemo() {
+        for (int n = 0; n < 1000; ++n) {
+            if (n == 19) {
+                std::cout<< "?" <<std::endl;
+            }
+            std::vector<int> src(n);
+            for (int i = 0; i < n; ++i) {
+                src[i] = i;
+            }
+            IntBTree bTree(5);
+            bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
+            bTree.showBTree();
+            bTree.qualified();
+        }
+        return true;
     }
-    IntBTree bTree(5);
-    bTree.bulk(BulkSource<int>(src.begin(), src.end()));
-    return true;
-}
 
 #ifdef BULK
-bool bulkDemoSucceed = bulkDemo();
+    bool bulkDemoSucceed = bulkDemo();
 #endif
+
+}
