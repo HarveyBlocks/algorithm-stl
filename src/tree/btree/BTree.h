@@ -65,7 +65,7 @@ namespace harvey::algorithm::tree::btree {
 
         void showBTree(std::ostream &os = std::cout) const;
 
-        void qualified() const {
+        int qualified() const {
             // 1. lower bound 和 upper bound
             // 2. 层数都一样
             // 3. size都匹配
@@ -97,19 +97,18 @@ namespace harvey::algorithm::tree::btree {
                     }
                     stk.push({depth + 1, child});
                 }
-                if (node->empty()) {
+                if (leaf) {
                     if (depthMax == 0) {
                         depthMax = depth;
                     } else if (depthMax != depth) {
                         throw IllegalStateException("depth not equals with other node");
                     }
-                    if (!leaf) {
-                        BTreeNodeReference<T, Cmp> child = node->childAt(filledCount);
-                        if (child == nullptr) {
-                            throw IllegalStateException("null child in filled element");
-                        }
-                        stk.push({depth + 1, child});
+                } else if (!node->empty()) {
+                    BTreeNodeReference<T, Cmp> child = node->childAt(filledCount);
+                    if (child == nullptr) {
+                        throw IllegalStateException("null child in filled element");
                     }
+                    stk.push({depth + 1, child});
                 }
                 for (int i = filledCount; i < level - 1; ++i) {
                     const BTreeData<T> &data = node->dataAt(i);
@@ -122,6 +121,7 @@ namespace harvey::algorithm::tree::btree {
                     }
                 }
             }
+            return depthMax;
         }
 
 #endif

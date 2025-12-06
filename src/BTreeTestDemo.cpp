@@ -114,9 +114,7 @@ namespace harvey::algorithm::tree::btree {
 //      - 节点分裂          reset(new_node_left.element_count), reset(new_node_right.element_count), parent.element_count++(递归)
 //      每删除元素一个
 //      还要考虑如果检测到太低了, 又如何进行节点合并呢?把一个太少的+合并到兄弟?
-//
-// TODO
-//  3. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)
+//  3. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)                85%-100%
 // 二. 序列化
 //  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
 //  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
@@ -149,16 +147,16 @@ namespace harvey::algorithm::tree::btree::bulk {
          * biggerChildrenCount + smallerChildrenCount = nodeSize + 1
          * 0 <= smallerChildrenCount < nodeSize + 1
          */
-        int smallerChildrenCount;
+        int biggerChildrenCount;
 
         SplitPolicy() : SplitPolicy(0, 0, 0, 0) {}
 
-        SplitPolicy(int layer, int nodeSize, int smallerChildSize, int smallerChildrenCount) :
+        SplitPolicy(int layer, int nodeSize, int smallerChildSize, int biggerChildrenCount) :
                 layer(layer), nodeSize(nodeSize), smallerChildSize(smallerChildSize),
-                smallerChildrenCount(smallerChildrenCount) {}
+                biggerChildrenCount(biggerChildrenCount) {}
 
-        [[nodiscard]] bool notFound() const {
-            return layer == 0;
+        [[nodiscard]] bool found() const {
+            return layer != 0;
         }
 
         void update(const SplitPolicy &challenger) {
@@ -166,15 +164,15 @@ namespace harvey::algorithm::tree::btree::bulk {
             this->layer = challenger.layer;
             this->nodeSize = challenger.nodeSize;
             this->smallerChildSize = challenger.smallerChildSize;
-            this->smallerChildrenCount = challenger.smallerChildrenCount;
+            this->biggerChildrenCount = challenger.biggerChildrenCount;
         }
 
         [[nodiscard]] bool ok(int childSizeMin, int childSizeMax) const {
             // 1. if(smaller) smaller >= child_min
-            return (smallerChildrenCount == 0 ||
-                    childSizeMin <= smallerChildSize && smallerChildrenCount <= childSizeMax) &&
+            return (biggerChildrenCount == 0 ||
+                    childSizeMin <= smallerChildSize + 1 && smallerChildSize + 1 <= childSizeMax) &&
                    // 2. if(bigger) bigger >= child_min
-                   childSizeMin <= smallerChildSize + 1 && smallerChildSize + 1 <= childSizeMax;
+                   childSizeMin <= smallerChildSize && smallerChildSize <= childSizeMax;
         }
     };
 
@@ -212,12 +210,12 @@ namespace harvey::algorithm::tree::btree::bulk {
             for (int nodeSize = level - 1; nodeSize >= lowerBound; --nodeSize) {
                 int sourceForChild = sourceSize - nodeSize;
                 int childrenCount = nodeSize + 1;
-                if (childMax * childrenCount < sourceForChild) {//TODO <=是否取等
+                if (policy.found() && childMax * childrenCount < sourceForChild) {//TODO <=是否取等
                     break;
                 }
-                int smallerChildSize = sourceForChild / childrenCount;
-                int smallerChildrenCount = (smallerChildSize + 1) * childrenCount - sourceForChild;
-                SplitPolicy challenger(layer + 1, nodeSize, smallerChildSize, smallerChildrenCount);
+                int biggerChildrenCount = sourceForChild % childrenCount;
+                int smallerChildSize = (sourceForChild - biggerChildrenCount) / childrenCount;
+                SplitPolicy challenger(layer + 1, nodeSize, smallerChildSize, biggerChildrenCount);
                 if (challenger.ok(childMin, childMax)) {
                     policy.update(challenger);
                 }
@@ -352,7 +350,7 @@ namespace harvey::algorithm::tree::btree::bulk {
         [[nodiscard]] BTreeNodeReference<T, Cmp> build(bulk::SplitPolicyFactory *factory, int layer) const {
             BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->level));
             const bulk::SplitPolicy policy = factory->create(sourceSize(), layer/*包含node*/);
-            if (policy.notFound()) {
+            if (!policy.found()) {
                 throw IllegalStateException("not find bulk build policy!");
             }
             node->resize(policy.nodeSize);
@@ -367,7 +365,7 @@ namespace harvey::algorithm::tree::btree::bulk {
             bulk::SplitPolicyFactory *childFactory = factory->childFactory();
             typename std::vector<T>::const_iterator childBegin = begin;
             for (int i = 0; i < policy.nodeSize; ++i) {
-                int limit = policy.smallerChildSize + (i >= policy.smallerChildrenCount ? 1 /*bigger*/: 0);
+                int limit = policy.smallerChildSize + (i < policy.biggerChildrenCount ? 1 /*bigger*/: 0);
                 auto childEnd = childBegin + limit;
                 BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, childEnd)
                         .build<Cmp>(childFactory, childLayer);
@@ -408,25 +406,43 @@ namespace harvey::algorithm::tree::btree {
 
 namespace harvey::algorithm::tree::btree {
 
-    bool bulkDemo() {
-        for (int n = 0; n < 1000; ++n) {
-            if (n == 19) {
-                std::cout<< "?" <<std::endl;
-            }
+    bool bulkLoopDemo() {
+        for (int n = 0; n < 100000; n += Random::signedInt(1, 100)) {
             std::vector<int> src(n);
             for (int i = 0; i < n; ++i) {
                 src[i] = i;
             }
-            IntBTree bTree(5);
+            int level = Random::signedInt(5, 20);
+            IntBTree bTree(level);
             bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
-            bTree.showBTree();
+            // bTree.showBTree();
             bTree.qualified();
+            if (n % 100 == 0) {
+                std::cout << "ping...level=" << level << ",n=" << n << ",rate=" << bTree.calRate() << std::endl;
+            }
         }
         return true;
     }
 
+    bool bulkBigDataDemo() {
+        // 大数据测试
+        int n = 100000000;
+        std::vector<int> src(n);
+        for (int i = 0; i < n; ++i) {
+            src[i] = i;
+        }
+        int level = Random::signedInt(5, 20);
+        std::cout << "start...level = " << level << ",n = " << n << std::endl;
+        IntBTree bTree(level);
+        bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
+        // bTree.showBTree();
+        std::cout << "max-depth = " << bTree.qualified() << std::endl;
+        std::cout << "rate = " << bTree.calRate() << std::endl;
+        return true;
+    }
+
 #ifdef BULK
-    bool bulkDemoSucceed = bulkDemo();
+    bool bulkDemoSucceed = bulkBigDataDemo() && bulkLoopDemo();
 #endif
 
 }
