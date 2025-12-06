@@ -25,6 +25,9 @@
 
 #endif
 
+template<typename T>
+class BulkSource;
+
 namespace harvey::algorithm::tree::btree {
     template<typename T, typename Cmp>
     class BTree {
@@ -62,13 +65,12 @@ namespace harvey::algorithm::tree::btree {
 #endif
 #ifdef BULK
 
-        class BulkSource;
 
         /**
          *
          * @return
          */
-        BTree &bulk(const BulkSource &sorted);
+        BTree &bulk(const BulkSource<T> &sorted);
 
 #endif
 

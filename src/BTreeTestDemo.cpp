@@ -122,6 +122,14 @@ int btreeDemo() {
 bool BTreeTestDemoCode = /*btreeDemo() &&*/ btreeDemoLoop() && bigDataBtreeDemo();
 #endif
 
+// TODO 调试时不开启 #define OPEN_BULK_POLICY_CACHE
+
+#ifdef OPEN_BULK_POLICY_CACHE
+
+#include "util/type.h"
+
+#endif
+
 namespace harvey::algorithm::tree::btree {
     struct SplitPolicy {
         int layer;
@@ -164,10 +172,15 @@ namespace harvey::algorithm::tree::btree {
 
 
     class SplitPolicyFactory {
-    protected:
-        int level;
+    private:
+        static int power(int a, int b) {
+            int res = 1;
+            for (int i = 0; i < b; i++) res *= a;
+            return res;
+        }
 
-        explicit SplitPolicyFactory(int level) : level(level) {}
+    protected:
+        const int level;
 
         [[nodiscard]] int maxOn(int layer) const {
             return power(level, layer) - 1;
@@ -178,14 +191,38 @@ namespace harvey::algorithm::tree::btree {
             return power(lb + 1, layer) - 1;
         }
 
-        static int power(int a, int b) {
-            int res = 1;
-            for (int i = 0; i < b; i++) res *= a;
-            return res;
+        [[nodiscard]] SplitPolicy create(int sourceSize, int layer, int lowerBound) const {
+            if (sourceSize < lowerBound) {
+                return {};
+            }
+            if (sourceSize < level - 1) {// leaf
+                return {1, sourceSize, 0, 0};
+            }
+            layer = getLayer(sourceSize, layer);
+            int childMin = minOn(layer - 1);
+            int childMax = maxOn(layer - 1);
+            SplitPolicy policy;
+            for (int nodeSize = level - 1; nodeSize >= lowerBound; --nodeSize) {
+                int sourceForChild = sourceSize - nodeSize;
+                int childrenCount = nodeSize + 1;
+                if (childMax * childrenCount < sourceForChild) {//TODO <=是否取等
+                    break;
+                }
+                int smallerChildSize = sourceForChild / childrenCount;
+                int smallerChildrenCount = (smallerChildSize + 1) * childrenCount - sourceForChild;
+                SplitPolicy challenger(layer, nodeSize, smallerChildSize, smallerChildrenCount);
+                if (challenger.ok(childMin)) {
+                    policy.update(challenger);
+                }
+            }
+            return policy;
         }
+
+        [[nodiscard]] virtual int getLayer(int sourceSize, int layer) const = 0;
 
     public:
 
+        explicit SplitPolicyFactory(int level) : level(level) {}
 
         /**
          * 1. 让size尽可能大, 这样layer就会尽可能小 <br>
@@ -195,107 +232,70 @@ namespace harvey::algorithm::tree::btree {
          * @param layer
          * @return
          */
-        virtual SplitPolicy create(int sourceSize, int layer) = 0;
+        [[nodiscard]] virtual SplitPolicy create(int sourceSize, int layer) = 0;
 
         virtual SplitPolicyFactory *childFactory() = 0;
 
-        [[nodiscard]] int getLevel() const {
-            return level;
-        }
+        [[nodiscard]] int getLevel() const { return level; }
 
         virtual ~SplitPolicyFactory() = default;
     };
 
-
+    // TODO
+    // 要求layer, 就一定是layer!
+    // layer->level
+    // policy.smaller*policy.smaller.count+
+    // (policy.smaller+1)*(sourceSize-policy.smaller.count-policy.node)+
+    // policy.node
     class NodeSplitPolicyFactory : public SplitPolicyFactory {
+    private:
+#ifdef OPEN_BULK_POLICY_CACHE
+        std::unordered_map<int64, SplitPolicy> cache;
+#endif
     public:
         explicit NodeSplitPolicyFactory(int level) : SplitPolicyFactory(level) {}
 
-        [[nodiscard]] int getLayer(int sourceSize, int layer) const {
+        [[nodiscard]] int getLayer(int sourceSize, int layer) const override {
             return layer;
         }
 
-        // TODO
-        // 要求layer, 就一定是layer!
-        // layer->level
-        // policy.smaller*policy.smaller.count+
-        // (policy.smaller+1)*(sourceSize-policy.smaller.count-policy.node)+
-        // policy.node
         SplitPolicy create(int sourceSize, int layer) override {
-            int nodeLowerBound = (level - 1) >> 1;
-            if (sourceSize < nodeLowerBound) {
-                return {};
+#ifdef OPEN_BULK_POLICY_CACHE
+            // 缓存增强
+            int64 key = int64(sourceSize) << 32 | layer;
+            const std::unordered_map<int64, SplitPolicy>::iterator &find = cache.find(key);
+            if (find != cache.end()) {
+                return find->second;
             }
-            if (sourceSize < level - 1) {// leaf
-                return {1, sourceSize, 0, 0};
-            }
-            layer = getLayer(sourceSize, layer);
-            int minOnLayer = minOn(layer);
-            int maxOnLayer = maxOn(layer);
-            SplitPolicy policy;
-            for (int nodeSize = level - 1; nodeSize >= nodeLowerBound; --nodeSize) {
-                int sourceForChild = sourceSize - nodeSize;
-                int childrenCount = nodeSize + 1;
-                if (maxOnLayer * childrenCount > sourceForChild) {
-                    break;
-                }
-                int smallerChildSize = sourceForChild / childrenCount;
-                int smallerChildrenCount = (smallerChildSize + 1) * childrenCount - sourceForChild;
-                SplitPolicy challenger(layer, nodeSize, smallerChildSize, smallerChildrenCount);
-                if (challenger.ok(minOnLayer)) {
-                    policy.update(challenger);
-                }
-            }
+#endif
+            const SplitPolicy &policy = this->SplitPolicyFactory::create(sourceSize, layer, (level - 1) >> 1);
+#ifdef OPEN_BULK_POLICY_CACHE
+            cache.insert({key, policy});
+#endif
             return policy;
         }
 
-        SplitPolicyFactory *childFactory() override {
-            return this;
-        }
+        SplitPolicyFactory *childFactory() override { return this; }
     };
 
     class RootSplitPolicyFactory : public SplitPolicyFactory {
     private:
         NodeSplitPolicyFactory *_childFactory = nullptr;
     public:
-        explicit RootSplitPolicyFactory(int level) :
-                SplitPolicyFactory(level) {}
+        explicit RootSplitPolicyFactory(int level) : SplitPolicyFactory(level) {}
 
-        [[nodiscard]] int getLayer(int sourceSize, int layer) const {
+        [[nodiscard]] int getLayer(int sourceSize, int layer) const override {
             // child layer
             int sourceForChild = sourceSize - level + 1;
             int childrenCount = level;
-            for (layer = 1; maxOn(layer) * childrenCount <= sourceForChild; layer++);
+            for (layer = 1; maxOn(layer) * childrenCount <= sourceForChild; layer++);//TODO <=是否取等
             return layer + 1;
         }
 
-        [[nodiscard]] SplitPolicy create(int sourceSize, int layer) override {
-            int nodeLowerBound = 1;
-            if (sourceSize < nodeLowerBound) {
-                return {};
-            }
-            if (sourceSize < level - 1) {// leaf
-                return {1, sourceSize, 0, 0};
-            }
-            layer = getLayer(sourceSize, layer);
-            int minOnLayer = minOn(layer);
-            int maxOnLayer = maxOn(layer);
-            SplitPolicy policy;
-            for (int nodeSize = level - 1; nodeSize >= nodeLowerBound; --nodeSize) {
-                int sourceForChild = sourceSize - nodeSize;
-                int childrenCount = nodeSize + 1;
-                if (maxOnLayer * childrenCount > sourceForChild) {
-                    break;
-                }
-                int smallerChildSize = sourceForChild / childrenCount;
-                int smallerChildrenCount = (smallerChildSize + 1) * childrenCount - sourceForChild;
-                SplitPolicy challenger(layer, nodeSize, smallerChildSize, smallerChildrenCount);
-                if (challenger.ok(minOnLayer)) {
-                    policy.update(challenger);
-                }
-            }
-            return policy;
+        SplitPolicy create(int sourceSize, int layer) override {
+            return this->SplitPolicyFactory::create(sourceSize, layer, 1);
         }
+
 
         SplitPolicyFactory *childFactory() override {
             if (_childFactory == nullptr) {
@@ -310,8 +310,8 @@ namespace harvey::algorithm::tree::btree {
     };
 }
 
-template<typename T, typename Cmp>
-class BTree<T, Cmp>::BulkSource {
+template<typename T>
+class BulkSource {
     typename std::vector<T>::const_iterator begin;
     typename std::vector<T>::const_iterator end;
 public:
@@ -320,13 +320,14 @@ public:
             const typename std::vector<T>::const_iterator &end) :
             begin(begin), end(end) {}
 
-    [[nodiscard]] BTreeNodeReference<T, Cmp> build(int btreeLevel) const {// 判断, 调度
-        RootSplitPolicyFactory factory(btreeLevel);
+    template<typename Cmp = Greater<T>>
+    [[nodiscard]] BTreeNodeReference<T, Cmp> build(int level) const {// 判断, 调度
         if (sourceSize() == 0) {
             // empty, then return
-            return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(factory.getLevel()));
+            return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(level));
         }
-        BTreeNodeReference<T, Cmp> node = build(&factory, 0); // 这个layer是随便的, 因为对于root其不生效
+        RootSplitPolicyFactory factory(level);
+        BTreeNodeReference<T, Cmp> node = build<Cmp>(&factory, 0); // 这个layer是随便的, 因为对于root其不生效
         return node;
     }
 
@@ -340,6 +341,7 @@ private:
 #pragma ide diagnostic ignored "misc-no-recursion"
 
     // TODO 解开递归
+    template<typename Cmp = Greater<T>>
     [[nodiscard]] BTreeNodeReference<T, Cmp> build(SplitPolicyFactory *factory, int layer) const {
         BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->getLevel()));
         SplitPolicy policy = factory->create(sourceSize(), layer);
@@ -360,13 +362,13 @@ private:
         for (int i = 0; i < policy.nodeSize; ++i) {
             int limit = policy.smallerChildSize + (i >= policy.smallerChildrenCount ? 1 /*bigger*/: 0);
             auto childEnd = childBegin + limit;
-            BTreeNodeReference<T, Cmp> child = BulkSource(childBegin, childEnd).build(childFactory, childLayer);
+            BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, childEnd).build<Cmp>(childFactory, childLayer);
             node->setChild(i, child);
             node->setData(i, BTreeData<T>(*(childEnd)));
             // 1 for parent
             childBegin = childEnd + 1;
         }
-        BTreeNodeReference<T, Cmp> child = BulkSource(childBegin, end).build(childFactory, childLayer);
+        BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, end).build<Cmp>(childFactory, childLayer);
         node->setChild(policy.nodeSize, child);
         return node;
     }
@@ -375,7 +377,7 @@ private:
 };
 
 template<typename T, typename Cmp>
-BTree<T, Cmp> &BTree<T, Cmp>::bulk(const BulkSource &source) {
+BTree<T, Cmp> &BTree<T, Cmp>::bulk(const BulkSource<T> &source) {
     // 1. 用count算出能建造出几层的树(不考虑是否需要分裂)->N层及以上, N+1层以下
     // 2. 构建N-1层(满), 需要元素X_1个, count==K*X+(K-1)+M
     //      特别的, 构建N-2层满, 需要元素X_2个
@@ -385,7 +387,7 @@ BTree<T, Cmp> &BTree<T, Cmp>::bulk(const BulkSource &source) {
     // 故可以递归得构建, 步骤一二的判断过程直接执行, 步骤三四递归构架树, 将source划分成一块一块的, 然后构建
     clear();
     root.release();
-    root = source.build(level);
+    root = source.template build<Cmp>(level);
     return *this;
 }
 
@@ -397,7 +399,7 @@ bool bulkDemo() {
         src[i] = i;
     }
     IntBTree bTree(5);
-    bTree.bulk(IntBTree::BulkSource(src.begin(), src.end()));
+    bTree.bulk(BulkSource<int>(src.begin(), src.end()));
     return true;
 }
 
