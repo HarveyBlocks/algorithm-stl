@@ -39,7 +39,7 @@ namespace harvey::algorithm::tree::btree {
 
         /**
          * @param parent 为了防止对外界的改变, 因此采用复制, 此时parent.child()==cur <br>
-         * @param lowerBound =(level-1)>>1 <br>
+         * @param lowerBound =(order-1)>>1 <br>
          */
         bool tryMoveFromBrother(BTreeNodeReference<T, Cmp> cur, int lowerBound) const;
 
@@ -59,15 +59,15 @@ namespace harvey::algorithm::tree::btree {
         void moveFromLeftBrother(BTreeNodeReference<T, Cmp> cur, BTreeNodeReference<T, Cmp> left);
 
 
-        void combine(int level);
+        void combine(int order);
 
-        void insert(int level, const InsertGroup<T, Cmp> &insertGroup);
+        void insert(int order, const InsertGroup<T, Cmp> &insertGroup);
 
         BTreeNode<T, Cmp> plus(const InsertGroup<T, Cmp> &insertGroup);
 
         /**
          * @param cur 为了防止对外界的改变, 因此采用复制, 此时this->child()==cur, cur->insert<br>
-         * @param bound (level-1)>>1 for lower and level-1 for !lower <br>
+         * @param bound (order-1)>>1 for lower and order-1 for !lower <br>
          */
         bool tryMoveToBrother(
                 const BTreeElement<T, Cmp> &cur, int upperBound,

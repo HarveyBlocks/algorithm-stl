@@ -37,13 +37,13 @@ namespace harvey::algorithm::tree::btree {
     private:
         BTreeNodeReference<T, Cmp> root;
         // n 级 B 树...
-        int level;
+        int order;
         Cmp cmp;
 
         friend class BTreeNode<T, Cmp>;
 
     public:
-        explicit BTree(int level, const Cmp &cmp = Cmp());
+        explicit BTree(int order, const Cmp &cmp = Cmp());
 
         ~BTree();
 
@@ -78,8 +78,8 @@ namespace harvey::algorithm::tree::btree {
                 BTreeNodeReference<T, Cmp> node = pair.second;
                 stk.pop();
                 int filledCount = node->filledCount();
-                if (filledCount >= level || (this->root != node && filledCount < (level - 1) >> 1)) {
-                    throw IllegalStateException("filled count is not match with level");
+                if (filledCount >= order || (this->root != node && filledCount < (order - 1) >> 1)) {
+                    throw IllegalStateException("filled count is not match with order");
                 }
                 bool leaf = node->leaf();
                 for (int i = 0; i < filledCount; ++i) {
@@ -109,7 +109,7 @@ namespace harvey::algorithm::tree::btree {
                     }
                     stk.push({depth + 1, child});
                 }
-                for (int i = filledCount; i < level - 1; ++i) {
+                for (int i = filledCount; i < order - 1; ++i) {
                     const BTreeData<T> &data = node->dataAt(i);
                     BTreeNodeReference<T, Cmp> child = node->childAt(i + 1);
                     if (data != nullptr) {

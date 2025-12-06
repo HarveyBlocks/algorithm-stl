@@ -115,7 +115,7 @@ namespace harvey::algorithm::tree::btree {
 //      每删除元素一个
 //      还要考虑如果检测到太低了, 又如何进行节点合并呢?把一个太少的+合并到兄弟?
 //  3. 对数据进行批量插入的优化, 批量插入的数据排序后再插入(Bulk)                85%-100%,
-//        有一个很有意思的数据点, level=48, n=96, 由于下限的存在, 即使是最优方案, 还是会留出大量的空间
+//        有一个很有意思的数据点, order=48, n=96, 由于下限的存在, 即使是最优方案, 还是会留出大量的空间
 // 二. 序列化
 //  T* 要搞成T, 但是这样又...因为要转化...导致大量的IO, 很复杂!
 //  考虑使用某种"代理"呢? 就是内存中的BTree结构使用的是代理T,
@@ -189,11 +189,11 @@ namespace harvey::algorithm::tree::btree::bulk {
     protected:
 
         [[nodiscard]] int maxOn(int layer) const {
-            return power(level, layer) - 1;
+            return power(order, layer) - 1;
         }
 
         [[nodiscard]] int minOn(int layer) const {
-            int lb = (level - 1) >> 1;
+            int lb = (order - 1) >> 1;
             return power(lb + 1, layer) - 1;
         }
 
@@ -201,14 +201,14 @@ namespace harvey::algorithm::tree::btree::bulk {
             if (sourceSize < lowerBound) {
                 return {};
             }
-            if (sourceSize < level) {// leaf
+            if (sourceSize < order) {// leaf
                 return {1, sourceSize, 0, 0};
             }
             layer = getLayer(sourceSize, layer);
             int childMin = minOn(layer);
             int childMax = maxOn(layer);
             SplitPolicy policy;
-            for (int nodeSize = level - 1; nodeSize >= lowerBound; --nodeSize) {
+            for (int nodeSize = order - 1; nodeSize >= lowerBound; --nodeSize) {
                 int sourceForChild = sourceSize - nodeSize;
                 int childrenCount = nodeSize + 1;
                 if (policy.found() && childMax * childrenCount < sourceForChild) {
@@ -228,13 +228,13 @@ namespace harvey::algorithm::tree::btree::bulk {
         [[nodiscard]] virtual int getLayer(int sourceSize, int layer) const = 0;
 
     public:
-        const int level;
+        const int order;
 
-        explicit SplitPolicyFactory(int level) : level(level) {}
+        explicit SplitPolicyFactory(int order) : order(order) {}
 
         /**
          * 1. 让size尽可能大, 这样layer就会尽可能小 <br>
-         * 2. size=level-1, 取得理论layer最小值 <br>
+         * 2. size=order-1, 取得理论layer最小值 <br>
          * 3. size--, 这样layer就会逐渐丰满 <br>
          * @param sourceSize
          * @param layer 包含node
@@ -249,7 +249,7 @@ namespace harvey::algorithm::tree::btree::bulk {
     };
 
     // 要求layer, 就一定是layer!
-    // layer->level
+    // layer->order
     // policy.smaller*policy.smaller.count+
     // (policy.smaller+1)*(sourceSize-policy.smaller.count-policy.node)+
     // policy.node
@@ -259,7 +259,7 @@ namespace harvey::algorithm::tree::btree::bulk {
         std::unordered_map<int64, SplitPolicy> cache;
 #endif
     public:
-        explicit NodeSplitPolicyFactory(int level) : SplitPolicyFactory(level) {}
+        explicit NodeSplitPolicyFactory(int order) : SplitPolicyFactory(order) {}
 
         [[nodiscard]] int getLayer(int sourceSize, int layer) const override {
             return layer - 1;
@@ -274,7 +274,7 @@ namespace harvey::algorithm::tree::btree::bulk {
                 return find->second;
             }
 #endif
-            const SplitPolicy &policy = this->SplitPolicyFactory::create(sourceSize, layer, (level - 1) >> 1);
+            const SplitPolicy &policy = this->SplitPolicyFactory::create(sourceSize, layer, (order - 1) >> 1);
 #ifndef CLOSE_BULK_POLICY_CACHE
             cache.insert({key, policy});
 #endif
@@ -288,12 +288,12 @@ namespace harvey::algorithm::tree::btree::bulk {
     private:
         NodeSplitPolicyFactory *_childFactory = nullptr;
     public:
-        explicit RootSplitPolicyFactory(int level) : SplitPolicyFactory(level) {}
+        explicit RootSplitPolicyFactory(int order) : SplitPolicyFactory(order) {}
 
         [[nodiscard]] int getLayer(int sourceSize, int layer) const override {
             // child layer
-            int sourceForChild = sourceSize - level + 1;
-            int childrenCount = level;
+            int sourceForChild = sourceSize - order + 1;
+            int childrenCount = order;
             for (layer = 1; maxOn(layer) * childrenCount < sourceForChild; layer++);
             // 此时的layer是完全可以hold住sourceForChild的
             return layer;
@@ -306,7 +306,7 @@ namespace harvey::algorithm::tree::btree::bulk {
 
         SplitPolicyFactory *childFactory() override {
             if (_childFactory == nullptr) {
-                _childFactory = new NodeSplitPolicyFactory(level); // init
+                _childFactory = new NodeSplitPolicyFactory(order); // init
             }
             return _childFactory;
         }
@@ -328,12 +328,12 @@ namespace harvey::algorithm::tree::btree::bulk {
                 begin(begin), end(end) {}
 
         template<typename Cmp = Greater<T>>
-        [[nodiscard]] BTreeNodeReference<T, Cmp> build(int level) const {// 判断, 调度
+        [[nodiscard]] BTreeNodeReference<T, Cmp> build(int order) const {// 判断, 调度
             if (sourceSize() == 0) {
                 // empty, then return
-                return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(level));
+                return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(order));
             }
-            bulk::RootSplitPolicyFactory factory(level);
+            bulk::RootSplitPolicyFactory factory(order);
             BTreeNodeReference<T, Cmp> node = build<Cmp>(&factory, 1); // 这个layer是随便的, 因为对于root其不生效
             return node;
         }
@@ -350,13 +350,13 @@ namespace harvey::algorithm::tree::btree::bulk {
         /**
          * 解开递归? <br>
          * 递归最深和树的深度一致, <br>
-         * 树的深度最多30层左右(level=3, 千亿数据), 对于递归的压力来说还好吧?  <br>
-         * 而且生产中, level一般在100左右, 数据量百万级就已经很多了, 这种情况下深度一般是不到10层的 <br>
+         * 树的深度最多30层左右(order=3, 千亿数据), 对于递归的压力来说还好吧?  <br>
+         * 而且生产中, order一般在100左右, 数据量百万级就已经很多了, 这种情况下深度一般是不到10层的 <br>
          * 而且递归的速度比栈要稍微快一点
          */
         template<typename Cmp = Greater<T>>
         [[nodiscard]] BTreeNodeReference<T, Cmp> build(bulk::SplitPolicyFactory *factory, int layer) const {
-            BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->level));
+            BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->order));
             const bulk::SplitPolicy policy = factory->create(sourceSize(), layer/*包含node*/);
             if (!policy.found()) {
                 throw IllegalStateException("not find bulk build policy!");
@@ -398,13 +398,13 @@ namespace harvey::algorithm::tree::btree {
         // 1. 用count算出能建造出几层的树(不考虑是否需要分裂)->N层及以上, N+1层以下
         // 2. 构建N-1层(满), 需要元素X_1个, count==K*X+(K-1)+M
         //      特别的, 构建N-2层满, 需要元素X_2个
-        // 3. 如果M==0, 构建K个N-1层(满), root节点的元素是K-1个, 由于条件一, K<level-1
+        // 3. 如果M==0, 构建K个N-1层(满), root节点的元素是K-1个, 由于条件一, K<order-1
         // 4. 如果M>0, 构建K+1个N-1层, 但不满, 每一个的个数是count_1 = (count-k)/(k+1)
         //      由条件1,2得X_2<count_1<X_1
         // 故可以递归得构建, 步骤一二的判断过程直接执行, 步骤三四递归构架树, 将source划分成一块一块的, 然后构建
         clear();
         root.release();
-        root = source.template build<Cmp>(level);
+        root = source.template build<Cmp>(order);
         return *this;
     }
 
@@ -420,13 +420,13 @@ namespace harvey::algorithm::tree::btree {
             for (int i = 0; i < n; ++i) {
                 src[i] = i;
             }
-            int level = Random::signedInt(3, 100);
-            IntBTree bTree(level);
+            int order = Random::signedInt(3, 100);
+            IntBTree bTree(order);
             bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
             // bTree.showBTree();
             int maxDepth = bTree.qualified();
             if (n % 100 == 0) {
-                std::cout << "ping...level = " << level << ", n = " << n << ", max-depth = " << maxDepth
+                std::cout << "ping...order = " << order << ", n = " << n << ", max-depth = " << maxDepth
                           << ", rate = " << bTree.calRate() << std::endl;
             }
         }
@@ -440,9 +440,9 @@ namespace harvey::algorithm::tree::btree {
         for (int i = 0; i < n; ++i) {
             src[i] = i;
         }
-        int level = Random::signedInt(5, 100);
-        std::cout << "start...level = " << level << ",n = " << n << std::endl;
-        IntBTree bTree(level);
+        int order = Random::signedInt(5, 100);
+        std::cout << "start...order = " << order << ",n = " << n << std::endl;
+        IntBTree bTree(order);
         bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
         // bTree.showBTree();
         std::cout << "max-depth = " << bTree.qualified() << std::endl;
@@ -456,12 +456,12 @@ namespace harvey::algorithm::tree::btree {
         for (int i = 0; i < n; ++i) {
             src[i] = i;
         }
-        int level = 48;
-        IntBTree bTree(level);
+        int order = 48;
+        IntBTree bTree(order);
         bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
          bTree.showBTree();
         int maxDepth = bTree.qualified();
-        std::cout << "ping...level = " << level << ", n = " << n << ", max-depth = " << maxDepth
+        std::cout << "ping...order = " << order << ", n = " << n << ", max-depth = " << maxDepth
                   << ", rate = " << bTree.calRate() << std::endl;
         return true;
     }

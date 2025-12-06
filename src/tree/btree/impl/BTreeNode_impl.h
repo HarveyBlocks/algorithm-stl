@@ -16,9 +16,9 @@
 
 namespace harvey::algorithm::tree::btree {
     template<typename T, typename Cmp>
-    BTreeNode<T, Cmp>::BTreeNode(int level) :
-            datas(new BTreeData<T>[level - 1]), children(new BTreeNodeReference<T, Cmp>[level]), size(0) {
-        for (int i = 0; i < level - 1; ++i) {
+    BTreeNode<T, Cmp>::BTreeNode(int order) :
+            datas(new BTreeData<T>[order - 1]), children(new BTreeNodeReference<T, Cmp>[order]), size(0) {
+        for (int i = 0; i < order - 1; ++i) {
             datas[i] = nullptr;
         }
     }
@@ -74,8 +74,8 @@ namespace harvey::algorithm::tree::btree {
     }
 
     template<typename T, typename Cmp>
-    bool BTreeNode<T, Cmp>::full(int level) const {
-        return level - 1 == size;
+    bool BTreeNode<T, Cmp>::full(int order) const {
+        return order - 1 == size;
     }
 
     template<typename T, typename Cmp>
@@ -89,9 +89,9 @@ namespace harvey::algorithm::tree::btree {
     }
 
     template<typename T, typename Cmp>
-    bool BTreeNode<T, Cmp>::insert(int index, int level, const InsertGroup<T, Cmp> &insertGroup) {
+    bool BTreeNode<T, Cmp>::insert(int index, int order, const InsertGroup<T, Cmp> &insertGroup) {
         Objects::requireTrue(index <= size, "can not insert after node dataSize");
-        Objects::checkTrue(size < level - 1, "tree node is full");
+        Objects::checkTrue(size < order - 1, "tree node is full");
         for (int i = size; i > index; --i) {
             datas[i] = datas[i - 1];
             children[i + 1] = children[i];
@@ -100,14 +100,14 @@ namespace harvey::algorithm::tree::btree {
         size++;
         children[index] = insertGroup.left;
         children[index + 1] = insertGroup.right;
-        return level - 1 == size;
+        return order - 1 == size;
     }
 
     template<typename T, typename Cmp>
     BTreeNode<T, Cmp> BTreeNode<T, Cmp>::plus(int index, const InsertGroup<T, Cmp> &insertGroup) const {
         Objects::requireTrue(index <= size, "can not insert after node dataSize");
-        int level = size + 1;
-        BTreeNode<T, Cmp> target(level + 1);
+        int order = size + 1;
+        BTreeNode<T, Cmp> target(order + 1);
         for (int i = 0, j = 0, k = 0; i < size + 1; ++i) {
             if (i == index) {
                 target.datas[i] = insertGroup.data;
@@ -118,7 +118,7 @@ namespace harvey::algorithm::tree::btree {
                 target.children[k++] = children[i];
             }
         }
-        target.size = level;
+        target.size = order;
         return target;
     }
 
@@ -139,9 +139,9 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     void BTreeNode<T, Cmp>::split(InsertGroup<T, Cmp> &insertGroup) const {
-        int level = size;
+        int order = size;
         // 1. 的值移动到上面的节点 4->1, 5->2, 6->2
-        int midIndex = (level - 1) >> 1;
+        int midIndex = (order - 1) >> 1;
         // 2. update left
         for (int i = 0; i < midIndex; ++i) {
             insertGroup.left->datas[i] = datas[i];
@@ -149,15 +149,15 @@ namespace harvey::algorithm::tree::btree {
         }
         insertGroup.left->size = midIndex;
         insertGroup.left->children[insertGroup.left->size] = this->children[insertGroup.left->size];
-        // 3. update data = top->at(index = level>>1);
+        // 3. update data = top->at(index = order>>1);
         insertGroup.data = datas[midIndex];
         // 4. update right
-        for (int i = midIndex + 1, j = 0; i < level; ++i, ++j) {
+        for (int i = midIndex + 1, j = 0; i < order; ++i, ++j) {
             insertGroup.right->datas[j] = datas[i];
             insertGroup.right->children[j] = children[i];
         }
-        insertGroup.right->size = level - midIndex - 1;
-        insertGroup.right->children[insertGroup.right->size] = this->children[level];
+        insertGroup.right->size = order - midIndex - 1;
+        insertGroup.right->children[insertGroup.right->size] = this->children[order];
     }
 
 
@@ -203,7 +203,7 @@ namespace harvey::algorithm::tree::btree {
 
 
     template<typename T, typename Cmp>
-    void BTreeNode<T, Cmp>::showBTree(int level, ::std::ostream &os) const {
+    void BTreeNode<T, Cmp>::showBTree(int order, ::std::ostream &os) const {
         std::queue<::std::pair<BTreeNodeReference<T, Cmp>, ::std::pair<int, ::std::pair<int, int>>>> que;
         int depth = 0;
         int cnt = 0;
@@ -227,19 +227,19 @@ namespace harvey::algorithm::tree::btree {
             os << "[" << id << "|" << node->size << "|";
             parentId < 0 ? os << "-" : os << parentId;
             os << "]" << "(";
-            for (int i = 0; i < level - 1; ++i) {
+            for (int i = 0; i < order - 1; ++i) {
                 const BTreeData<T> &data = node->datas[i];
                 if (data != nullptr) {
                     os << *data;
                 } else {
                     os << "n";
                 }
-                os << "|)"[i == level - 2] << ::std::flush;
+                os << "|)"[i == order - 2] << ::std::flush;
                 que.push({node->children[i],
                           ::std::pair<int, ::std::pair<int, int>>{depth + 1, ::std::pair<int, int>{cnt++, id}}});
             }
             os << "\t";
-            que.push({node->children[level - 1],
+            que.push({node->children[order - 1],
                       ::std::pair<int, ::std::pair<int, int>>{depth + 1, ::std::pair<int, int>{cnt++, id}}});
         }
         os << ::std::endl;

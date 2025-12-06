@@ -14,8 +14,8 @@
 
 namespace harvey::algorithm::tree::btree {
     template<typename T, typename Cmp>
-    BTree<T, Cmp>::BTree(int level, const Cmp &cmp) :
-            level(level), cmp(::std::move(cmp)) {
+    BTree<T, Cmp>::BTree(int order, const Cmp &cmp) :
+            order(order), cmp(::std::move(cmp)) {
         root = instanceNode();
     }
 
@@ -42,7 +42,7 @@ namespace harvey::algorithm::tree::btree {
             if (node->filledCount() != 0) {
                 stack.push(node->childAt(node->filledCount()));
             }
-            for (int i = node->filledCount(); i < level - 1; ++i) {
+            for (int i = node->filledCount(); i < order - 1; ++i) {
                 if (node->dataAt(i) != nullptr || node->childAt(i + 1) != nullptr) {
                     ::std::cout << "?" << ::std::endl;
                 }
@@ -73,7 +73,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     BTreeNodeReference<T, Cmp> BTree<T, Cmp>::instanceNode() const {
-        return BTreeNodeReference(new BTreeNode<T, Cmp>(level));
+        return BTreeNodeReference(new BTreeNode<T, Cmp>(order));
     }
 
     template<typename T, typename Cmp>
@@ -98,12 +98,12 @@ namespace harvey::algorithm::tree::btree {
     template<typename T, typename Cmp>
     void BTree<T, Cmp>::insertLeaf(const T &data, BTreeTrace<T, Cmp> &trace) {
         InsertGroup insertGroup(data);
-        int upperBound = level - 1;
+        int upperBound = order - 1;
         while (!trace.empty()) {
             BTreeElement<T, Cmp> top = trace.pop();
             // 2. 如果节点未满, 插入节点
-            if (!top.node->full(level)) {
-                top.insert(this->level, insertGroup);
+            if (!top.node->full(order)) {
+                top.insert(this->order, insertGroup);
                 return;
             }
             // 4. 如果节点满了
@@ -123,7 +123,7 @@ namespace harvey::algorithm::tree::btree {
         }
         // 新root
         root = instanceNode();
-        BTreeElement<T, Cmp>(root, -1/*children[0]*/).insert(this->level, insertGroup);
+        BTreeElement<T, Cmp>(root, -1/*children[0]*/).insert(this->order, insertGroup);
     }
 
 
@@ -161,7 +161,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     void BTree<T, Cmp>::removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNodeReference<T, Cmp> cur) {
-        int lowerBound = (level - 1) >> 1; // 4:1, 5:2, 6:2
+        int lowerBound = (order - 1) >> 1; // 4:1, 5:2, 6:2
         while (!trace.empty()) {
             // 4. 删除后叶子不小于下限(>=lowerBound), 直接删除
             if (cur->filledCount() >= lowerBound) {
@@ -182,7 +182,7 @@ namespace harvey::algorithm::tree::btree {
                 parent.index--;
             }
             // 选择右兄弟
-            parent.combine(level);
+            parent.combine(order);
             // for next loop
             cur = parent.node;
         }
@@ -213,22 +213,22 @@ namespace harvey::algorithm::tree::btree {
                 continue;
             }
             nodeCnt++;
-            for (int i = 0; i < level - 1; ++i) {
+            for (int i = 0; i < order - 1; ++i) {
                 const BTreeData<T>& data = node->dataAt(i);
                 if (data != nullptr) {
                     used++;
                 }
                 que.push(node->childAt(i));
             }
-            que.push(node->childAt(level - 1));
+            que.push(node->childAt(order - 1));
         }
-        return double(used) / nodeCnt / (level - 1);
+        return double(used) / nodeCnt / (order - 1);
     }
 
     template<typename T, typename Cmp>
     void BTree<T, Cmp>::showBTree(::std::ostream &os) const {
-        os << "-------------------" << level << "-------------------" << ::std::endl;
-        this->root->showBTree(this->level, os);
+        os << "-------------------" << order << "-------------------" << ::std::endl;
+        this->root->showBTree(this->order, os);
     }
 
 #endif

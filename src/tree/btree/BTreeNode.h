@@ -20,7 +20,7 @@ namespace harvey::algorithm::tree::btree {
     private:
         int size;
         /**
-         * 数组, 本节点上的, 长度及level有关
+         * 数组, 本节点上的, 长度及order有关
          */
         BTreeData<T> *datas;
         BTreeNodeReference<T, Cmp> *children;
@@ -31,7 +31,7 @@ namespace harvey::algorithm::tree::btree {
         /**
          * @return 对data进行new拷贝构造
          */
-        bool insert(int index, int level, const InsertGroup<T, Cmp> &insertGroup);
+        bool insert(int index, int order, const InsertGroup<T, Cmp> &insertGroup);
 
         /**
          * @return 增加后转移到返回值, 自己清空
@@ -47,18 +47,18 @@ namespace harvey::algorithm::tree::btree {
 
         [[nodiscard]] bool leaf() const;
 
-        explicit BTreeNode(int level);
+        explicit BTreeNode(int order);
 
         ~BTreeNode();
 
 
-        [[nodiscard]] bool full(int level) const;
+        [[nodiscard]] bool full(int order) const;
 
         [[nodiscard]] bool empty() const;
 
         /**
          * @param value target
-         * @param level BTree::level
+         * @param order BTree::order
          * @return positive for find, negative for not found;<br>
          *      -1 for value is before index 0
          *      -2 for value is between index (0,1)
@@ -96,7 +96,7 @@ namespace harvey::algorithm::tree::btree {
 
 #ifdef DEBUG
 
-        void showBTree(int level, std::ostream &os = std::cout) const;
+        void showBTree(int order, std::ostream &os = std::cout) const;
 
 #endif
     };

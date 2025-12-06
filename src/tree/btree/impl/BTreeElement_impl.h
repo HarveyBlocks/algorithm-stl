@@ -66,8 +66,8 @@ namespace harvey::algorithm::tree::btree {
     }
 
     template<typename T, typename Cmp>
-    void BTreeElement<T, Cmp>::insert(int level, const InsertGroup<T, Cmp> &insertGroup) {
-        node->insert(-index - 1, level, insertGroup);
+    void BTreeElement<T, Cmp>::insert(int order, const InsertGroup<T, Cmp> &insertGroup) {
+        node->insert(-index - 1, order, insertGroup);
     }
 
     template<typename T, typename Cmp>
@@ -125,13 +125,13 @@ namespace harvey::algorithm::tree::btree {
     }
 
     template<typename T, typename Cmp>
-    void BTreeElement<T, Cmp>::combine(int level) {
+    void BTreeElement<T, Cmp>::combine(int order) {
         // (left|parent|right)->left
         const BTreeData<T> &data = this->data();
         BTreeNodeReference<T, Cmp> left = this->node->children[this->index];
         BTreeNodeReference<T, Cmp> right = this->node->children[this->index + 1];
         int combineSize = left->size + 1 + right->size;
-        Objects::requireTrue(combineSize < level, "can not combine for node is larger than upper bound after combine!");
+        Objects::requireTrue(combineSize < order, "can not combine for node is larger than upper bound after combine!");
         left->datas[left->size] = data;
         left->size++;
         for (int i = 0; i < right->size; ++i) {
