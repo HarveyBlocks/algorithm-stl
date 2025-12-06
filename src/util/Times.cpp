@@ -16,4 +16,11 @@ double Times::timing(Runnable *runnable) {
     return double(duration.count());
 }
 
+int Times::millionTime(void (*fun)()) {
+    clock_t start = std::clock();
+    // fun();
+    clock_t end = std::clock();
+    return (int) (end - start);
+}
+
 

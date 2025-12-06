@@ -35,20 +35,15 @@ namespace harvey::algorithm::tree::btree {
         stack.push(root);
         while (!stack.empty()) {
             BTreeNodeReference<T, Cmp> node = stack.pop();
-            if (node == nullptr) {
-                continue;
-            }
+            if (node == nullptr) continue;
             for (int i = 0; i < node->filledCount(); ++i) {
                 node->dataAt(i).release();
-                stack.push(node->childAt(i));
+                const BTreeNodeReference<T, Cmp> &child = node->childAt(i);
+                if (child != nullptr) stack.push(child);
             }
             if (node->filledCount() != 0) {
-                stack.push(node->childAt(node->filledCount()));
-            }
-            for (int i = node->filledCount(); i < order - 1; ++i) {
-                if (node->dataAt(i) != nullptr || node->childAt(i + 1) != nullptr) {
-                    ::std::cout << "?" << ::std::endl;
-                }
+                const BTreeNodeReference<T, Cmp> &child = node->childAt(node->filledCount());
+                if (child != nullptr) stack.push(child);
             }
             node.release();
         }
