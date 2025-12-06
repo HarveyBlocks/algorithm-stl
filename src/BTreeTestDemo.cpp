@@ -231,7 +231,7 @@ namespace harvey::algorithm::tree::btree {
             }
             layer = getLayer(sourceSize, layer);
             int minOnLayer = minOn(layer);
-            int maxOnLayer = minOn(layer);
+            int maxOnLayer = maxOn(layer);
             SplitPolicy policy;
             for (int nodeSize = level - 1; nodeSize >= nodeLowerBound; --nodeSize) {
                 int sourceForChild = sourceSize - nodeSize;
