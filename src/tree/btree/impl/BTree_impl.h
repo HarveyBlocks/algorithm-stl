@@ -6,9 +6,12 @@
 #define ALGORITHM_BTREE_IMPL_H
 
 #include "../BTree.h"
+
 #ifdef DEBUG
 
 #include <queue>
+
+#include <stack>
 
 #endif
 
@@ -197,6 +200,23 @@ namespace harvey::algorithm::tree::btree {
         cur.release();
     }
 
+#ifdef BULK
+    template<typename T, typename Cmp>
+    BTree<T, Cmp> &BTree<T, Cmp>::bulk(const bulk::BulkSource<T> &source) {
+        // 1. 用count算出能建造出几层的树(不考虑是否需要分裂)->N层及以上, N+1层以下
+        // 2. 构建N-1层(满), 需要元素X_1个, count==K*X+(K-1)+M
+        //      特别的, 构建N-2层满, 需要元素X_2个
+        // 3. 如果M==0, 构建K个N-1层(满), root节点的元素是K-1个, 由于条件一, K<order-1
+        // 4. 如果M>0, 构建K+1个N-1层, 但不满, 每一个的个数是count_1 = (count-k)/(k+1)
+        //      由条件1,2得X_2<count_1<X_1
+        // 故可以递归得构建, 步骤一二的判断过程直接执行, 步骤三四递归构架树, 将source划分成一块一块的, 然后构建
+        clear();
+        root.release();
+        root = source.template build<Cmp>(order);
+        return *this;
+    }
+
+#endif
 #ifdef DEBUG
 
     template<typename T, typename Cmp>
@@ -214,7 +234,7 @@ namespace harvey::algorithm::tree::btree {
             }
             nodeCnt++;
             for (int i = 0; i < order - 1; ++i) {
-                const BTreeData<T>& data = node->dataAt(i);
+                const BTreeData<T> &data = node->dataAt(i);
                 if (data != nullptr) {
                     used++;
                 }
@@ -229,6 +249,65 @@ namespace harvey::algorithm::tree::btree {
     void BTree<T, Cmp>::showBTree(::std::ostream &os) const {
         os << "-------------------" << order << "-------------------" << ::std::endl;
         this->root->showBTree(this->order, os);
+    }
+
+    template<typename T, typename Cmp>
+    int BTree<T, Cmp>::qualified() const {
+        // 1. lower bound 和 upper bound
+        // 2. 层数都一样
+        // 3. size都匹配
+        ::std::stack<::std::pair<int, BTreeNodeReference<T, Cmp>>> stk;
+        stk.push({1, this->root});
+        int depthMax = 0;
+        while (!stk.empty()) {
+            auto pair = stk.top();
+            int depth = pair.first;
+            BTreeNodeReference<T, Cmp> node = pair.second;
+            stk.pop();
+            int filledCount = node->filledCount();
+            if (filledCount >= order || (this->root != node && filledCount < (order - 1) >> 1)) {
+                throw IllegalStateException("filled count is not match with order");
+            }
+            bool leaf = node->leaf();
+            for (int i = 0; i < filledCount; ++i) {
+                const BTreeData<T> &data = node->dataAt(i);
+                BTreeNodeReference<T, Cmp> child = node->childAt(i);
+                if (data == nullptr) {
+                    throw IllegalStateException("null data in filled element");
+                }
+                if (leaf) {
+                    continue;
+                }
+                if (child == nullptr) {
+                    throw IllegalStateException("null child in filled element");
+                }
+                stk.push({depth + 1, child});
+            }
+            if (leaf) {
+                if (depthMax == 0) {
+                    depthMax = depth;
+                } else if (depthMax != depth) {
+                    throw IllegalStateException("depth not equals with other node");
+                }
+            } else if (!node->empty()) {
+                BTreeNodeReference<T, Cmp> child = node->childAt(filledCount);
+                if (child == nullptr) {
+                    throw IllegalStateException("null child in filled element");
+                }
+                stk.push({depth + 1, child});
+            }
+            for (int i = filledCount; i < order - 1; ++i) {
+                const BTreeData<T> &data = node->dataAt(i);
+                BTreeNodeReference<T, Cmp> child = node->childAt(i + 1);
+                if (data != nullptr) {
+                    throw IllegalStateException("unreleased data in filled element");
+                }
+                if (child != nullptr) {
+                    throw IllegalStateException("unreleased data in filled element");
+                }
+            }
+        }
+        return depthMax;
     }
 
 #endif

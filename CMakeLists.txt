@@ -159,4 +159,14 @@ add_executable(algorithm
         src/tree/btree/BTreeReference.h
         src/tree/btree/InsertGroup.h
         src/tree/btree/BTreeData.h
+        src/tree/btree/bulk/SplitPolicy.h
+        src/tree/btree/bulk/SplitPolicyFactory.h
+        src/tree/btree/bulk/NodeSplitPolicyFactory.h
+        src/tree/btree/bulk/RootSplitPolicyFactory.h
+        src/tree/btree/bulk/BulkSource.h
+        src/tree/btree/bulk/RootSplitPolicyFactory.cpp
+        src/tree/btree/bulk/SplitPolicy.cpp
+        src/tree/btree/bulk/SplitPolicyFactory.cpp
+        src/tree/btree/bulk/NodeSplitPolicyFactory.cpp
+        src/tree/btree/bulk/BulkSource_impl.h
 )
