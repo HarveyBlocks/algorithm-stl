@@ -14,6 +14,8 @@ namespace harvey::algorithm::tree::btree {
     public:
         explicit BTreeData(const T *reference = nullptr) : reference(reference) {}
 
+        explicit BTreeData(const T &data) : reference(new T(data)) {}
+
         void release() { reference.release(); }
 
         T *operator->() const { return reference.operator->(); }

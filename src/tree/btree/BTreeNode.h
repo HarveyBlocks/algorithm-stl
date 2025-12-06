@@ -28,7 +28,6 @@ namespace harvey::algorithm::tree::btree {
         friend class BTreeElement<T, Cmp>;
 
 
-
         [[nodiscard]] bool leaf() const;
 
         /**
@@ -54,6 +53,7 @@ namespace harvey::algorithm::tree::btree {
 
 
         [[nodiscard]] bool full(int level) const;
+
         [[nodiscard]] bool empty() const;
 
         /**
@@ -84,6 +84,8 @@ namespace harvey::algorithm::tree::btree {
 
         void reset();
 
+        void resize(int newSize);
+
         void resetChild(int index);
 
         /**
@@ -98,6 +100,7 @@ namespace harvey::algorithm::tree::btree {
 
 #endif
     };
+
 
 
 }

@@ -31,6 +31,15 @@ public:
             reference(const_cast<T *>(reference)) {}
 
 
+    /**
+     * 不能在这里delete reference, <br>
+     * 因为new出来的操作不是在本类里做的<br>
+     * 必须由外界来决定是否进行释放reference, <br>
+     * 也就是只有外界主动调用release方法, <br>
+     * 才能释放资源<br>
+     */
+    ~ReferenceImpl() = default;
+
     void release() override { // 完全代理reference的操作
         delete reference;
         reference = nullptr;
@@ -57,7 +66,7 @@ public:
         return *this;
     };
 
-    ReferenceImpl<T> &operator=(const ReferenceImpl<T> &ref)  {
+    ReferenceImpl<T> &operator=(const ReferenceImpl<T> &ref) {
         if (this != &ref) {
             this->reference = ref.reference;
         }

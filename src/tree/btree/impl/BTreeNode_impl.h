@@ -35,7 +35,7 @@ namespace harvey::algorithm::tree::btree {
         int low = 0;
         while (low <= high) {
             int mid = int(low + ((unsigned int) (high - low) >> 1));
-            const BTreeData<T>& data = datas[mid];
+            const BTreeData<T> &data = datas[mid];
             int cmp = belong->cmp(*data, value);
             if (cmp < 0) {
                 low = mid + 1;
@@ -63,7 +63,7 @@ namespace harvey::algorithm::tree::btree {
 
     template<typename T, typename Cmp>
     BTreeData<T> BTreeNode<T, Cmp>::setData(int index, const BTreeData<T> &data) {
-        const BTreeData<T>& old = datas[index];
+        const BTreeData<T> &old = datas[index];
         datas[index] = data;
         return old;
     }
@@ -130,6 +130,11 @@ namespace harvey::algorithm::tree::btree {
         }
         children[size] = nullptr;
         size = 0;
+    }
+
+    template<typename T, typename Cmp>
+    void BTreeNode<T, Cmp>::resize(int newSize) {
+        this->size = newSize;
     }
 
     template<typename T, typename Cmp>
@@ -223,7 +228,7 @@ namespace harvey::algorithm::tree::btree {
             parentId < 0 ? os << "-" : os << parentId;
             os << "]" << "(";
             for (int i = 0; i < level - 1; ++i) {
-                const BTreeData<T>& data = node->datas[i];
+                const BTreeData<T> &data = node->datas[i];
                 if (data != nullptr) {
                     os << *data;
                 } else {

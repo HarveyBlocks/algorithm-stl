@@ -12,9 +12,16 @@
 #include "BTreeElement.h"
 #include "BTreeDeclarations.h"
 
+#define BULK
+
 #ifdef DEBUG
 
 #include <iostream>
+
+#endif
+#ifdef BULK
+
+#include <vector>
 
 #endif
 
@@ -53,7 +60,17 @@ namespace harvey::algorithm::tree::btree {
         void showBTree(std::ostream &os = std::cout) const;
 
 #endif
+#ifdef BULK
 
+        class BulkSource;
+
+        /**
+         *
+         * @return
+         */
+        BTree &bulk(const BulkSource &sorted);
+
+#endif
 
     private:
         [[nodiscard]] BTreeNodeReference<T, Cmp> instanceNode() const;
@@ -66,6 +83,7 @@ namespace harvey::algorithm::tree::btree {
 
         void removeLeaf(BTreeTrace<T, Cmp> &trace, BTreeNodeReference<T, Cmp> cur);
     };
+
 }
 
 #include "impl/BTree_impl.h"
