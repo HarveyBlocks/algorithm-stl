@@ -210,7 +210,8 @@ namespace harvey::algorithm::tree::btree::bulk {
             for (int nodeSize = level - 1; nodeSize >= lowerBound; --nodeSize) {
                 int sourceForChild = sourceSize - nodeSize;
                 int childrenCount = nodeSize + 1;
-                if (policy.found() && childMax * childrenCount < sourceForChild) {//TODO <=是否取等
+                if (policy.found() && childMax * childrenCount < sourceForChild) {
+                    // 已经溢出
                     break;
                 }
                 int biggerChildrenCount = sourceForChild % childrenCount;
@@ -246,7 +247,6 @@ namespace harvey::algorithm::tree::btree::bulk {
         virtual ~SplitPolicyFactory() = default;
     };
 
-    // TODO
     // 要求layer, 就一定是layer!
     // layer->level
     // policy.smaller*policy.smaller.count+
@@ -293,7 +293,8 @@ namespace harvey::algorithm::tree::btree::bulk {
             // child layer
             int sourceForChild = sourceSize - level + 1;
             int childrenCount = level;
-            for (layer = 1; maxOn(layer) * childrenCount <= sourceForChild; layer++);//TODO <=是否取等
+            for (layer = 1; maxOn(layer) * childrenCount < sourceForChild; layer++);
+            // 此时的layer是完全可以hold住sourceForChild的
             return layer;
         }
 
@@ -412,13 +413,14 @@ namespace harvey::algorithm::tree::btree {
             for (int i = 0; i < n; ++i) {
                 src[i] = i;
             }
-            int level = Random::signedInt(5, 20);
+            int level = Random::signedInt(3, 20);
             IntBTree bTree(level);
             bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
             // bTree.showBTree();
-            bTree.qualified();
+            int maxDepth = bTree.qualified();
             if (n % 100 == 0) {
-                std::cout << "ping...level=" << level << ",n=" << n << ",rate=" << bTree.calRate() << std::endl;
+                std::cout << "ping...level = " << level << ", n = " << n << ", max-depth = " << maxDepth
+                          << ", rate = " << bTree.calRate() << std::endl;
             }
         }
         return true;
@@ -442,7 +444,7 @@ namespace harvey::algorithm::tree::btree {
     }
 
 #ifdef BULK
-    bool bulkDemoSucceed = bulkBigDataDemo() && bulkLoopDemo();
+    bool bulkDemoSucceed = bulkLoopDemo() && bulkBigDataDemo();
 #endif
 
 }
