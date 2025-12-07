@@ -1,7 +1,15 @@
 #define DEBUG
 
 
-#define BULK // or BULK
+#define BULK // or BTREE_BASE
+
+#ifdef BTREE_BASE
+#undef BULK
+#endif
+
+#ifdef BULK
+#undef BTREE_BASE
+#endif
 
 #include <fstream>
 #include "tree/btree/BTree.h"

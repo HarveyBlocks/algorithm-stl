@@ -1,74 +1,289 @@
 # algorithm-stl
 
-## 基础类
+## Project structure
 
-### 数组
+```
 
-### 字符串
+ALGORITHM
+|   .gitignore
+|   CMakeLists.txt
+|   data.txt
+|   dir-tree.txt
+|   mktree.bat
+|   README.md
+|   
+\---src
+    |   BTreeTestDemo.cpp
+    |   CompilerTestDemo.cpp
+    |   ContainerDemo.cpp
+    |   main.cpp
+    |   MathDemo.cpp
+    |   SelectDemo.cpp
+    |   SortDemo.cpp
+    |   StringDemo.cpp
+    |   TreeDemo.cpp
+    |   
+    +---compiler
+    |   \---analysis
+    |           TernaryExpressionPhaserByTree.cpp
+    |           TernaryExpressionPhaserByTree.h
+    |           
+    +---container
+    |   |   Container.h
+    |   |   Heap.h
+    |   |   Heap_impl.h
+    |   |   
+    |   +---associative
+    |   |       AssociativeContainer.h
+    |   |       Entry.h
+    |   |       HashTable.h
+    |   |       
+    |   \---sequence
+    |       |   ArrayList.h
+    |       |   DoublyLinkedList.h
+    |       |   LinkedList.h
+    |       |   PriorityQueue.h
+    |       |   Queue.h
+    |       |   QueueLinkedList.h
+    |       |   QueueLinkedNode.h
+    |       |   SequentialAccessibleContainer.h
+    |       |   SingleLinkedList.h
+    |       |   Stack.h
+    |       |   StackLinkedList.h
+    |       |   StackLinkedNode.h
+    |       |   
+    |       \---impl
+    |               ArrayList_impl.h
+    |               DoublyLinkedList_impl.h
+    |               QueueLinkedList_impl.h
+    |               Queue_impl.h
+    |               StackLinkedList_impl.h
+    |               Stack_impl.h
+    |               
+    +---lang
+    |   |   Array.h
+    |   |   Array_impl.h
+    |   |   BaseObject.cpp
+    |   |   BaseObject.h
+    |   |   Comparable.h
+    |   |   HashCode.h
+    |   |   Runnable.h
+    |   |   String.cpp
+    |   |   String.h
+    |   |   StringBuilder.cpp
+    |   |   StringBuilder.h
+    |   |   Task.h
+    |   |   UInt128.cpp
+    |   |   UInt128.h
+    |   |   
+    |   +---exception
+    |   |       DivideZeroException.h
+    |   |       DownflowException.h
+    |   |       Exception.h
+    |   |       IllegalArgumentException.h
+    |   |       IllegalStateException.h
+    |   |       IndexOutOfBoundException.h
+    |   |       NullPointException.h
+    |   |       OutOfMemoryException.h
+    |   |       OverflowException.h
+    |   |       UnauthorizedException.h
+    |   |       
+    |   \---packaging
+    |           Byte.cpp
+    |           Byte.h
+    |           Integer.cpp
+    |           Integer.h
+    |           
+    +---math
+    |       AbstractCalculator.h
+    |       BigInteger.cpp
+    |       BigInteger.h
+    |       ByteBigInteger.cpp
+    |       ByteBigInteger.h
+    |       ByteCalculator.cpp
+    |       ByteCalculator.h
+    |       Calculator.h
+    |       commons.h
+    |       Data.cpp
+    |       Data.h
+    |       DataBasedCalculator.h
+    |       MathComparable.h
+    |       ShortByteDivider.cpp
+    |       ShortByteDivider.h
+    |       
+    +---objects
+    |       BytesObject.h
+    |       MetaField.h
+    |       MetaObject.h
+    |       
+    +---tree
+    |   |   Trie.cpp
+    |   |   Trie.h
+    |   |   
+    |   +---binary
+    |   |   |   AvlTree.h
+    |   |   |   BinaryBalanceSearchTree.h
+    |   |   |   BinarySearchTree.h
+    |   |   |   BinaryTree.h
+    |   |   |   BinaryTreeNode.h
+    |   |   |   OrderStatisticTree.h
+    |   |   |   OrderStatisticTreeNode.h
+    |   |   |   RedBlackTree.h
+    |   |   |   RedBlackTreeNode.h
+    |   |   |   TraversalOrder.h
+    |   |   |   TraversalOrderNode.h
+    |   |   |   Treap.h
+    |   |   |   TreapNode.h
+    |   |   |   
+    |   |   \---impl
+    |   |           BinaryBalanceSearchTree_impl.h
+    |   |           BinarySearchTree_impl.h
+    |   |           BinaryTreeNode_impl.h
+    |   |           BinaryTree_impl.h
+    |   |           RedBlackTreeNode_impl.h
+    |   |           RedBlackTree_impl.h
+    |   |           TraversalOrderNode_impl.h
+    |   |           TraversalOrder_impl.h
+    |   |           
+    |   \---btree
+    |       |   BTree.h
+    |       |   BTreeData.h
+    |       |   BTreeDeclarations.h
+    |       |   BTreeElement.h
+    |       |   BTreeNode.h
+    |       |   BTreeReference.h
+    |       |   InsertGroup.h
+    |       |   
+    |       +---bulk
+    |       |       BulkSource.h
+    |       |       BulkSource_impl.h
+    |       |       NodeSplitPolicyFactory.cpp
+    |       |       NodeSplitPolicyFactory.h
+    |       |       RootSplitPolicyFactory.cpp
+    |       |       RootSplitPolicyFactory.h
+    |       |       SplitPolicy.cpp
+    |       |       SplitPolicy.h
+    |       |       SplitPolicyFactory.cpp
+    |       |       SplitPolicyFactory.h
+    |       |       
+    |       \---impl
+    |               BTreeElement_impl.h
+    |               BTreeNode_impl.h
+    |               BTreeReference_impl.h
+    |               BTree_impl.h
+    |               
+    \---util
+        |   Arrays.h
+        |   Color.h
+        |   ColorfulString.cpp
+        |   ColorfulString.h
+        |   Comparator.h
+        |   Decoder.h
+        |   Encoder.h
+        |   Objects.cpp
+        |   Objects.h
+        |   PermutationIterator.cpp
+        |   PermutationIterator.h
+        |   Random.cpp
+        |   Random.h
+        |   RandomContainer.h
+        |   Reference.h
+        |   Times.cpp
+        |   Times.h
+        |   type.h
+        |   
+        +---arithmetic
+        |       ArithmeticalOperation.h
+        |       Calculate24.cpp
+        |       Calculate24.h
+        |       expression.h
+        |       Number.cpp
+        |       Number.h
+        |       
+        +---function
+        |       function.h
+        |       
+        \---sort
+                BucketSort.h
+                ComparisonSort.h
+                CountSort.h
+                EncodingSort.h
+                InsertionSort.h
+                MergeSort.h
+                QuickSort.h
+                RadixSort.h
+                SelectionSort.h
+                SortAlgorithm.h
+                
+```
 
-### StringBuilder
+## Basic class
 
-### 异常类
+### Array
 
-## 大整形
+### String & StringBuilder
 
-## 排序算法
+### Exceptions
 
-## 容器-序列容器
+## BigInteger
 
-### 变长数组
+## Sort Algorithm
 
-### 链表
+## Container-Sequential
 
-### 双端链表
+### ArrayList
 
-### 队列
+### LinkedList
 
-基于链表
+### DoubleLinkedList
 
-### 栈
+### Queue
 
-基于链表
+based on LinkedList
 
-### Hash表
+### Stack
 
-### 堆
+based on LinkedList
 
-## 容器-树
+### HashTable
 
-### 二叉树和二叉搜索树
+### Heap
 
-### AVL 树
+## Container-Tree
 
-### 红黑树
+### Binary Tree and Search Binary Tree
 
-### 遍历
+### AVL Tree
 
-- 中序遍历
-- 前序遍历
-- 后续遍历
+### Black-Red Tree
 
-### B树
+### Traversal
 
-### B 树 B \* 树优化
+### BTree
 
-### B 树 Bulk 优化
+### BTree & B*BTree
 
-### 字典树
+### Bulk on BTree
 
-## 二十四点游戏
+### Trie
 
-## 工具
+## Game of Calculate 24
 
-### 随机
+## Utils
 
-### 引用
+### Random
 
-### 函数式
+### Reference
 
-### 比较
+### functional
 
-### 类型
+### Comparator
+
+### Types
+
+### Objects
 
 
-### Objects检查
+
+
+
