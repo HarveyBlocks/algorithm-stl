@@ -13,7 +13,6 @@ namespace harvey::algorithm::tree::btree {
 }
 
 #ifdef BTREE_BASE
-
 namespace harvey::algorithm::tree::btree {
 
 
@@ -126,7 +125,7 @@ namespace harvey::algorithm::tree::btree {
             }
             int order = Random::signedInt(3, 100);
             IntBTree bTree(order);
-            bTree.bulk(bulk::BulkSource<int>(src.begin(), src.end()));
+            bTree.bulk(IntBulkSource(src.begin(), src.end()));
             // bTree.showBTree();
             int maxDepth = bTree.qualified();
             if (n % 100 == 0) {
@@ -170,7 +169,7 @@ namespace harvey::algorithm::tree::btree {
         return true;
     }
 
-    bool bulkDemoSucceed = bulkBigDataDemo() && false && bulkDemo() && bulkLoopDemo();
+    bool bulkDemoSucceed = bulkBigDataDemo() && bulkDemo() && bulkLoopDemo();
 
 }
 #endif

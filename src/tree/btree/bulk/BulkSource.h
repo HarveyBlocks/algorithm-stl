@@ -12,13 +12,17 @@
 
 namespace harvey::algorithm::tree::btree::bulk {
     template<typename T>
+    using BulkIterator = typename std::vector<T>::const_iterator;
+
+
+    template<typename T>
     class BulkSource {
-        typename std::vector<T>::const_iterator begin;
-        typename std::vector<T>::const_iterator end;
+        BulkIterator<T> begin;
+        BulkIterator<T> end;
     public:
         explicit BulkSource(
-                const typename std::vector<T>::const_iterator &begin,
-                const typename std::vector<T>::const_iterator &end);
+                const BulkIterator<T> &begin,
+                const BulkIterator<T> &end);
 
         template<typename Cmp = Greater<T>>
         [[nodiscard]] BTreeNodeReference<T, Cmp> build(int order) const;
@@ -43,5 +47,7 @@ namespace harvey::algorithm::tree::btree::bulk {
 #pragma clang diagnostic pop
     };
 }
+
 #include "BulkSource_impl.h"
+
 #endif //ALGORITHM_BTREE_BULK_SOURCE_H

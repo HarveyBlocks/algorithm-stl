@@ -196,6 +196,7 @@ namespace harvey::algorithm::tree::btree {
     }
 
 #ifdef BULK
+
     template<typename T, typename Cmp>
     BTree<T, Cmp> &BTree<T, Cmp>::bulk(const bulk::BulkSource<T> &source) {
         // 1. 用count算出能建造出几层的树(不考虑是否需要分裂)->N层及以上, N+1层以下

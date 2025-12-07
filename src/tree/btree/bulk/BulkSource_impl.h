@@ -10,8 +10,8 @@
 namespace harvey::algorithm::tree::btree::bulk {
     template<typename T>
     BulkSource<T>::BulkSource(
-            const typename std::vector<T>::const_iterator &begin,
-            const typename std::vector<T>::const_iterator &end) :
+            const BulkIterator<T> &begin,
+            const BulkIterator<T> &end) :
             begin(begin), end(end) {}
 
     template<typename T>
@@ -21,7 +21,7 @@ namespace harvey::algorithm::tree::btree::bulk {
             // empty, then return
             return BTreeNodeReference<T, Cmp>(new BTreeNode<T, Cmp>(order));
         }
-        bulk::RootSplitPolicyFactory factory(order);
+        RootSplitPolicyFactory factory(order);
         BTreeNodeReference<T, Cmp> node = build<Cmp>(&factory, 1); // 这个layer是随便的, 因为对于root其不生效
         return node;
     }
@@ -33,7 +33,7 @@ namespace harvey::algorithm::tree::btree::bulk {
 
     template<typename T>
     template<typename Cmp>
-    BTreeNodeReference<T, Cmp> BulkSource<T>::build(bulk::SplitPolicyFactory *factory, int layer) const {
+    BTreeNodeReference<T, Cmp> BulkSource<T>::build(SplitPolicyFactory *factory, int layer) const {
         BTreeNodeReference<T, Cmp> node(new BTreeNode<T, Cmp>(factory->order));
         const bulk::SplitPolicy policy = factory->create(sourceSize(), layer/*包含node*/);
         if (!policy.found()) {
@@ -48,20 +48,16 @@ namespace harvey::algorithm::tree::btree::bulk {
             return node;
         }
         int childLayer = policy.layer - 1; // for children
-        bulk::SplitPolicyFactory *childFactory = factory->childFactory();
-        typename std::vector<T>::const_iterator childBegin = begin;
+        SplitPolicyFactory *childFactory = factory->childFactory();
+        BulkIterator<T> childBegin = begin;
         for (int i = 0; i < policy.nodeSize; ++i) {
             int limit = policy.smallerChildSize + (i < policy.biggerChildrenCount ? 1 /*bigger*/: 0);
-            auto childEnd = childBegin + limit;
-            BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, childEnd)
-                    .build<Cmp>(childFactory, childLayer);
-            node->setChild(i, child);
+            const BulkIterator<T> &childEnd = childBegin + limit;
+            node->setChild(i, BulkSource<T>(childBegin, childEnd).build<Cmp>(childFactory, childLayer));
             node->setData(i, BTreeData<T>(*(childEnd)));
-            // 1 for parent
-            childBegin = childEnd + 1;
+            childBegin = childEnd + 1; // 1 for parent
         }
-        BTreeNodeReference<T, Cmp> child = BulkSource<T>(childBegin, end).build<Cmp>(childFactory, childLayer);
-        node->setChild(policy.nodeSize, child);
+        node->setChild(policy.nodeSize, BulkSource<T>(childBegin, end).build<Cmp>(childFactory, childLayer));
         return node;
     }
 }
