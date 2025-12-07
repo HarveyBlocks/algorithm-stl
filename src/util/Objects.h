@@ -15,35 +15,15 @@ private:
     Objects() {}
 
 public:
-    static void requireNonNull(void *p, const std::string &msg) {
-        if (p == nullptr) {
-            throw IllegalArgumentException(msg);
-        }
-    }
+    static void requireNonNull(void *p, const std::string &msg);
 
-    static void requireTrue(bool condition, const std::string &msg) {
-        if (!condition) {
-            throw IllegalArgumentException(msg);
-        }
-    }
+    static void requireTrue(bool condition, const std::string &msg);
 
-    static void checkNonNull(void *p, const std::string &msg) {
-        if (p == nullptr) {
-            throw IllegalStateException(msg);
-        }
-    }
+    static void checkNonNull(void *p, const std::string &msg);
 
-    static void checkTrue(bool condition, const std::string &msg) {
-        if (!condition) {
-            throw IllegalStateException(msg);
-        }
-    }
+    static void checkTrue(bool condition, const std::string &msg);
 
-    static void checkFalse(bool condition, const std::string &msg) {
-        if (condition) {
-            throw IllegalStateException(msg);
-        }
-    }
+    static void checkFalse(bool condition, const std::string &msg);
 };
 
 

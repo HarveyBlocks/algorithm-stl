@@ -26,14 +26,14 @@ public:
 
     ~StackLinkedList();
 
+    StackLinkedList<T> &operator=(const StackLinkedList<T> &src);
+
     [[nodiscard]] int getSize() const override;
 
     [[nodiscard]] bool empty() const override;
 
     void forEach(const Function<T &, bool> &task) const override;
 };
-
-
 #include "impl/StackLinkedList_impl.h"
 
 #endif //ALGORITHM_STACK_LINKED_LIST_H

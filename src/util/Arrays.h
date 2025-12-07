@@ -36,7 +36,6 @@ public:
         }
         int weight = ascending ? 1 : -1;
         while (low <= high) {
-
             num = (high - low) / step;
             int mid = (int) (low + (num >> 1) * step); // TODO 0
 

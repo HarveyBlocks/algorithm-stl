@@ -71,14 +71,14 @@ add_executable(algorithm
         src/container/sequence/QueueLinkedNode.h
         src/container/sequence/StackLinkedNode.h
 
-        src/tree/BinaryTree.h
-        src/tree/impl/BinaryTree_impl.h
-        src/tree/BinaryTreeNode.h
-        src/tree/impl/BinaryTreeNode_impl.h
-        src/tree/TraversalOrder.h
-        src/tree/impl/TraversalOrder_impl.h
-        src/tree/BinarySearchTree.h
-        src/tree/impl/BinarySearchTree_impl.h
+        src/tree/binary/BinaryTree.h
+        src/tree/binary/impl/BinaryTree_impl.h
+        src/tree/binary/BinaryTreeNode.h
+        src/tree/binary/impl/BinaryTreeNode_impl.h
+        src/tree/binary/TraversalOrder.h
+        src/tree/binary/impl/TraversalOrder_impl.h
+        src/tree/binary/BinarySearchTree.h
+        src/tree/binary/impl/BinarySearchTree_impl.h
         src/container/sequence/impl/DoublyLinkedList_impl.h
         src/lang/HashCode.h
         src/container/associative/HashTable.h
@@ -88,20 +88,20 @@ add_executable(algorithm
         src/lang/String.h
         src/container/associative/Entry.h
         src/StringDemo.cpp
-        src/tree/RedBlackTree.h
-        src/tree/RedBlackTreeNode.h
-        src/tree/AvlTree.h
-        src/tree/BinaryBalanceSearchTree.h
+        src/tree/binary/RedBlackTree.h
+        src/tree/binary/RedBlackTreeNode.h
+        src/tree/binary/AvlTree.h
+        src/tree/binary/BinaryBalanceSearchTree.h
         src/util/Color.h
-        src/tree/impl/BinaryBalanceSearchTree_impl.h
-        src/tree/impl/RedBlackTreeNode_impl.h
+        src/tree/binary/impl/BinaryBalanceSearchTree_impl.h
+        src/tree/binary/impl/RedBlackTreeNode_impl.h
         src/util/ColorfulString.cpp
         src/util/ColorfulString.h
-        src/tree/Treap.h
-        src/tree/impl/RedBlackTree_impl.h
-        src/tree/TreapNode.h
-        src/tree/OrderStatisticTreeNode.h
-        src/tree/OrderStatisticTree.h
+        src/tree/binary/Treap.h
+        src/tree/binary/impl/RedBlackTree_impl.h
+        src/tree/binary/TreapNode.h
+        src/tree/binary/OrderStatisticTreeNode.h
+        src/tree/binary/OrderStatisticTree.h
         src/util/PermutationIterator.cpp
         src/util/PermutationIterator.h
         src/util/arithmetic/Calculate24.cpp
@@ -134,8 +134,8 @@ add_executable(algorithm
         src/math/MathComparable.h
         src/util/sort/SelectionSort.h
         src/CompilerTestDemo.cpp
-        src/tree/TraversalOrderNode.h
-        src/tree/impl/TraversalOrderNode_impl.h
+        src/tree/binary/TraversalOrderNode.h
+        src/tree/binary/impl/TraversalOrderNode_impl.h
         src/compiler/analysis/TernaryExpressionPhaserByTree.cpp
         src/compiler/analysis/TernaryExpressionPhaserByTree.h
         src/lang/UInt128.cpp
@@ -143,9 +143,30 @@ add_executable(algorithm
         src/tree/Trie.cpp
         src/tree/Trie.h
         src/util/type.h
-        src/tree/impl/BTree_impl.h
+        src/tree/btree/impl/BTree_impl.h
         src/util/Objects.cpp
         src/util/Objects.h
-        src/tree/impl/BTreeNode_impl.h
-        src/tree/BTree.h
+        src/tree/btree/impl/BTreeNode_impl.h
+        src/tree/btree/BTree.h
+        src/tree/btree/impl/BTreeElement_impl.h
+        src/objects/MetaObject.h
+        src/objects/BytesObject.h
+        src/util/Reference.h
+        src/tree/btree/impl/BTreeReference_impl.h
+        src/tree/btree/BTreeDeclarations.h
+        src/tree/btree/BTreeElement.h
+        src/tree/btree/BTreeNode.h
+        src/tree/btree/BTreeReference.h
+        src/tree/btree/InsertGroup.h
+        src/tree/btree/BTreeData.h
+        src/tree/btree/bulk/SplitPolicy.h
+        src/tree/btree/bulk/SplitPolicyFactory.h
+        src/tree/btree/bulk/NodeSplitPolicyFactory.h
+        src/tree/btree/bulk/RootSplitPolicyFactory.h
+        src/tree/btree/bulk/BulkSource.h
+        src/tree/btree/bulk/RootSplitPolicyFactory.cpp
+        src/tree/btree/bulk/SplitPolicy.cpp
+        src/tree/btree/bulk/SplitPolicyFactory.cpp
+        src/tree/btree/bulk/NodeSplitPolicyFactory.cpp
+        src/tree/btree/bulk/BulkSource_impl.h
 )

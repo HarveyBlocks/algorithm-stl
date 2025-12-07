@@ -480,12 +480,6 @@ private:
         if (oneByte == 0) {
             return DATA_ZERO;
         }
-        // TODO DEL
-        /*std::cout << "=====param=====" << std::endl;
-        int byteNumber = (int) oneByte.get();
-        data.printMessage("data");
-        math::MathCommons::printMessage("oneByte", oneByte.get());
-        std::cout << "==============" << std::endl;*/
         Data result = Data(dataCount + 1);
         Byte highTemp = BYTE_ZERO; // 乘法运算时留下的高位的数, 进位用
         for (int i = -1; i >= -dataCount; --i) {

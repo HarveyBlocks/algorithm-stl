@@ -1,11 +1,11 @@
-#include "tree/BinarySearchTree.h"
-#include "tree/RedBlackTree.h"
+#include "tree/binary/BinarySearchTree.h"
+#include "tree/binary/RedBlackTree.h"
 #include "util/Random.h"
-#include "tree/AvlTree.h"
-#include "tree/Treap.h"
+#include "tree/binary/AvlTree.h"
+#include "tree/binary/Treap.h"
 #include "util/sort/InsertionSort.h"
-#include "tree/OrderStatisticTreeNode.h"
-#include "tree/OrderStatisticTree.h"
+#include "tree/binary/OrderStatisticTreeNode.h"
+#include "tree/binary/OrderStatisticTree.h"
 
 
 int rbTreeDemo(bool show = false);
@@ -179,15 +179,18 @@ int orderStaticDemo(bool show = false) {
         std::cout << std::flush;
         return -1;
     }
-    if (show) std::cout << "\n" << tree << " \n";
-    int *value = tree.head(1);
-    if (value == nullptr) {
-        std::cout << "null" << std::endl;
-    } else {
-        std::cout << *value << std::endl;
+    std::cout << std::endl;
+    if (show) std::cout << tree << std::endl;
+    for (int i = 0; i < 100; ++i) {
+        int *value = tree.head(i);
+        if (value == nullptr) {
+            std::cout << "null" << ",";
+        } else {
+            std::cout << *value << ",";
+        }
     }
-
+    std::cout << std::endl;
     return 0;
 }
 
-// int treeCode = orderStaticDemo(true);
+//int treeCode = orderStaticDemo(true);

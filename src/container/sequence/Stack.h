@@ -30,6 +30,7 @@ public:
 
     Array<T> &moveToArray(Array<T> &array);
 
+    Stack<T> &operator=(const Stack<T> &src);
 
     friend std::ostream &operator<<(std::ostream &os, Stack<T> &stack) {
         Stack<T> temp;
@@ -45,7 +46,10 @@ public:
         }
         return os;
     }
+
+    T &topRef();
 };
+
 
 
 #include "impl/Stack_impl.h"

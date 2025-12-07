@@ -23,6 +23,14 @@ T Stack<T>::top() const {
 }
 
 template<class T>
+T &Stack<T>::topRef() {
+    if (this->empty()) {
+        throw IllegalStateException();
+    }
+    return linkList.front();
+}
+
+template<class T>
 T Stack<T>::pop() {
     T top = this->top();
     this->linkList.popFront();
@@ -33,6 +41,7 @@ template<class T>
 void Stack<T>::push(const T &element) {
     this->linkList.pushFront(element);
 }
+
 
 template<class T>
 Stack<T> Stack<T>::sort(Array<T> &array) {
@@ -83,6 +92,15 @@ Array<T> &Stack<T>::moveToArray(Array<T> &array) {
 template<class T>
 void Stack<T>::clear() {
     linkList.clear();
+}
+
+template<class T>
+Stack<T> &Stack<T>::operator=(const Stack<T> &src) {
+    if (this == &src) {
+        return *this;
+    }
+    this->linkList = src.linkList;
+    return *this;
 }
 
 #endif //ALGORITHM_STACK_IMPL_H

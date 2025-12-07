@@ -80,3 +80,9 @@ unsigned long long Random::initValue(long long int targetByteSize) {
     return result;
 }
 
+void Random::shuffle(std::vector<int> &arr) {
+    for (int i = int(arr.size()) - 1; i >= 0; --i) {
+        std::swap(arr[Random::unsignedInt() % (i + 1)], arr[i]);
+    }
+}
+
